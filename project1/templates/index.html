@@ -1,18 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Text Saver</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Input App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            text-align: center;
+        }
+        textarea {
+            width: 80%;
+            height: 100px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #response {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+    </style>
 </head>
 <body>
-    <form method="POST">
-        <textarea name="text" required></textarea>
+    <h2>Enter Text Below:</h2>
+    <form id="textForm">
+        <textarea id="textInput" required></textarea><br>
         <button type="submit">Submit</button>
     </form>
-    <h2>Stored Entries:</h2>
-    <ul>
-        {% for entry in entries %}
-            <li>{{ entry.content }} - Word Count: {{ entry.word_count }}</li>
-        {% endfor %}
-    </ul>
+    <div id="response"></div>
+
+    <script>
+        document.getElementById("textForm").addEventListener("submit", async function(event) {
+            event.preventDefault();
+            let text = document.getElementById("textInput").value;
+
+            let response = await fetch("https://your-app.onrender.com/", { 
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text })
+            });
+
+            let result = await response.json();
+            document.getElementById("response").innerText = "Word Count: " + result.word_count;
+        });
+    </script>
 </body>
 </html>
