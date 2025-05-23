@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Text Saver</title>
+</head>
+<body>
+    <form method="POST">
+        <textarea name="text" required></textarea>
+        <button type="submit">Submit</button>
+    </form>
+    <h2>Stored Entries:</h2>
+    <ul>
+        {% for entry in entries %}
+            <li>{{ entry.content }} - Word Count: {{ entry.word_count }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
