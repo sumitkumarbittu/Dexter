@@ -44,14 +44,18 @@
             event.preventDefault();
             let text = document.getElementById("textInput").value;
 
-            let response = await fetch("https://your-app.onrender.com/", { 
+            let response = await fetch("https://dexter-51zy.onrender.com", { 
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ text })
             });
 
-            let result = await response.json();
-            document.getElementById("response").innerText = "Word Count: " + result.word_count;
+            if (response.ok) {
+                let result = await response.json();
+                document.getElementById("response").innerText = "Word Count: " + result.word_count;
+            } else {
+                document.getElementById("response").innerText = "Error: Unable to reach server.";
+            }
         });
     </script>
 </body>
