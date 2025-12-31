@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Chat Viewer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+        }
+        
+        :root {
+            --whatsapp-green: #075e54;
+            --whatsapp-light-green: #25d366;
+            --whatsapp-chat-bg: #e5ddd5;
+            --whatsapp-user-msg: #dcf8c6;
+            --whatsapp-other-msg: #ffffff;
+            --whatsapp-timestamp: #667781;
+            --whatsapp-header: #f0f2f5;
+            --whatsapp-border: #e9edef;
+        }
+        
+        body {
+            background: linear-gradient(to bottom, var(--whatsapp-green), var(--whatsapp-chat-bg));
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 10px;
+            color: #111;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            height: 95vh;
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Header */
+        .header {
+            background-color: var(--whatsapp-green);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo i {
+            font-size: 24px;
+        }
+        
+        .logo h1 {
+            font-size: 20px;
+            font-weight: 500;
+        }
+        
+        .chat-info {
+            text-align: center;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .chat-info h2 {
+            font-size: 18px;
+            font-weight: 500;
+        }
+        
+        .chat-info p {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-top: 2px;
+        }
+        
+        /* Upload section */
+        .upload-section {
+            padding: 25px 20px;
+            background-color: var(--whatsapp-header);
+            border-bottom: 1px solid var(--whatsapp-border);
+            text-align: center;
+        }
+        
+        .upload-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 25px 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-bottom: 15px;
+        }
+        
+        .upload-icon {
+            font-size: 48px;
+            color: var(--whatsapp-green);
+            margin-bottom: 15px;
+        }
+        
+        .upload-title {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: var(--whatsapp-green);
+        }
+        
+        .upload-text {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            margin-bottom: 15px;
+        }
+        
+        .file-input {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+            z-index: 2;
+        }
+        
+        .file-input-label {
+            display: inline-block;
+            background-color: var(--whatsapp-green);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 10px rgba(7, 94, 84, 0.2);
+        }
+        
+        .file-input-label:hover {
+            background-color: #054c44;
+            transform: translateY(-2px);
+        }
+        
+        .file-name {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #666;
+        }
+        
+        .upload-note {
+            font-size: 12px;
+            color: #999;
+            margin-top: 15px;
+        }
+        
+        /* Chat container */
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px 10px;
+            background-color: var(--whatsapp-chat-bg);
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23075e54' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
+        }
+        
+        /* Chat messages */
+        .message {
+            display: flex;
+            margin-bottom: 10px;
+            padding: 0 5px;
+            max-width: 85%;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .message.user {
+            margin-left: auto;
+            flex-direction: row-reverse;
+        }
+        
+        .message-content {
+            padding: 8px 12px;
+            border-radius: 8px;
+            position: relative;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            word-break: break-word;
+            max-width: 100%;
+        }
+        
+        .message.user .message-content {
+            background-color: var(--whatsapp-user-msg);
+            border-top-right-radius: 2px;
+        }
+        
+        .message.other .message-content {
+            background-color: var(--whatsapp-other-msg);
+            border-top-left-radius: 2px;
+        }
+        
+        .message-text {
+            font-size: 14.5px;
+            line-height: 1.4;
+        }
+        
+        .message-meta {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 2px;
+            font-size: 11px;
+            color: var(--whatsapp-timestamp);
+        }
+        
+        .message-time {
+            margin-left: 5px;
+        }
+        
+        .message-sender {
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 13px;
+            color: #333;
+        }
+        
+        .message.user .message-sender {
+            text-align: right;
+        }
+        
+        /* Message types */
+        .message-document, .message-image, .message-link {
+            padding: 10px;
+            border-left: 4px solid var(--whatsapp-light-green);
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+        
+        .message-document i, .message-image i, .message-link i {
+            margin-right: 8px;
+            color: var(--whatsapp-green);
+        }
+        
+        .message-link a {
+            color: var(--whatsapp-green);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .message-link a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Date separator */
+        .date-separator {
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        .date-separator span {
+            background-color: rgba(225, 245, 225, 0.8);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--whatsapp-green);
+            font-weight: 500;
+            display: inline-block;
+        }
+        
+        .date-separator:before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background-color: rgba(7, 94, 84, 0.2);
+            z-index: -1;
+        }
+        
+        /* No messages */
+        .no-messages {
+            text-align: center;
+            padding: 50px 20px;
+            color: #666;
+        }
+        
+        .no-messages i {
+            font-size: 60px;
+            color: #ccc;
+            margin-bottom: 20px;
+        }
+        
+        .no-messages h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #555;
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 15px;
+            font-size: 12px;
+            color: #666;
+            background-color: var(--whatsapp-header);
+            border-top: 1px solid var(--whatsapp-border);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                height: 90vh;
+                border-radius: 0;
+            }
+            
+            body {
+                padding: 0;
+                background: var(--whatsapp-chat-bg);
+            }
+            
+            .header {
+                padding: 15px 10px;
+            }
+            
+            .logo h1 {
+                font-size: 18px;
+            }
+            
+            .chat-info h2 {
+                font-size: 16px;
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .upload-title {
+                font-size: 18px;
+            }
+            
+            .chat-info {
+                display: none;
+            }
+            
+            .message {
+                max-width: 95%;
+            }
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #b3b3b3;
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <i class="fab fa-whatsapp"></i>
+                <h1>WhatsApp Viewer</h1>
+            </div>
+            <div class="chat-info">
+                <h2>Chat Viewer</h2>
+                <p>Upload WhatsApp chat export</p>
+            </div>
+        </div>
+        
+        <!-- Upload Section -->
+        <div class="upload-section" id="uploadSection">
+            <div class="upload-container">
+                <div class="upload-icon">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <h2 class="upload-title">WhatsApp Chat Viewer</h2>
+                <p class="upload-text">
+                    Upload an exported WhatsApp chat (.txt file) to view it in a WhatsApp-like interface. 
+                    The chat will be displayed with proper formatting, timestamps, and sender identification.
+                </p>
+                
+                <div class="file-input-wrapper">
+                    <input type="file" id="fileInput" class="file-input" accept=".txt">
+                    <label for="fileInput" class="file-input-label">
+                        <i class="fas fa-upload"></i> Upload Chat File
+                    </label>
+                </div>
+                
+                <div class="file-name" id="fileName">
+                    No file selected
+                </div>
+                
+                <p class="upload-note">
+                    Your chat data is processed locally and not stored on any server. 
+                    All data will be cleared when you refresh or close the page.
+                </p>
+            </div>
+            
+            <div class="upload-container" style="margin-top: 20px;">
+                <h3 style="color: var(--whatsapp-green); margin-bottom: 15px; font-size: 16px;">
+                    <i class="fas fa-info-circle"></i> How to export WhatsApp chats
+                </h3>
+                <ol style="text-align: left; padding-left: 20px; font-size: 14px; color: #666; line-height: 1.6;">
+                    <li>Open the WhatsApp chat you want to export</li>
+                    <li>Tap on the three dots menu (Android) or chat name (iOS)</li>
+                    <li>Select "Export chat"</li>
+                    <li>Choose "Without media" to get a .txt file</li>
+                    <li>Upload the exported file here</li>
+                </ol>
+            </div>
+        </div>
+        
+        <!-- Chat Container -->
+        <div class="chat-container" id="chatContainer">
+            <div class="no-messages" id="noMessages">
+                <i class="fas fa-comment-slash"></i>
+                <h3>No chat loaded</h3>
+                <p>Upload a WhatsApp chat export to view messages here</p>
+            </div>
+            
+            <!-- Messages will be inserted here by JavaScript -->
+            <div id="messagesContainer"></div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p>WhatsApp Chat Viewer &copy; 2023 | Data is processed locally and not stored</p>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const fileInput = document.getElementById('fileInput');
+        const fileName = document.getElementById('fileName');
+        const uploadSection = document.getElementById('uploadSection');
+        const chatContainer = document.getElementById('chatContainer');
+        const noMessages = document.getElementById('noMessages');
+        const messagesContainer = document.getElementById('messagesContainer');
+        
+        // Session storage key
+        const STORAGE_KEY = 'whatsapp_chat_data';
+        
+        // Initialize the app
+        function initApp() {
+            // Check if there's chat data in session storage
+            const savedChatData = sessionStorage.getItem(STORAGE_KEY);
+            
+            if (savedChatData) {
+                try {
+                    const chatData = JSON.parse(savedChatData);
+                    displayChat(chatData);
+                } catch (e) {
+                    console.error('Error parsing saved chat data:', e);
+                    sessionStorage.removeItem(STORAGE_KEY);
+                }
+            }
+            
+            // Set up file input handler
+            fileInput.addEventListener('change', handleFileUpload);
+        }
+        
+        // Handle file upload
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            
+            if (!file) {
+                fileName.textContent = 'No file selected';
+                return;
+            }
+            
+            // Check if it's a text file
+            if (!file.name.endsWith('.txt')) {
+                alert('Please upload a .txt file (WhatsApp chat export)');
+                fileInput.value = '';
+                fileName.textContent = 'No file selected';
+                return;
+            }
+            
+            fileName.textContent = `Selected: ${file.name} (${formatFileSize(file.size)})`;
+            
+            // Read the file
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const fileContent = e.target.result;
+                const chatData = parseChatFile(fileContent);
+                
+                // Save to session storage
+                sessionStorage.setItem(STORAGE_KEY, JSON.stringify(chatData));
+                
+                // Display the chat
+                displayChat(chatData);
+            };
+            
+            reader.onerror = function() {
+                alert('Error reading the file. Please try again.');
+                fileName.textContent = 'Error reading file';
+            };
+            
+            reader.readAsText(file);
+        }
+        
+        // Parse the WhatsApp chat file content
+        function parseChatFile(content) {
+            const lines = content.split('\n');
+            const messages = [];
+            let currentDate = '';
+            
+            for (let line of lines) {
+                line = line.trim();
+                
+                if (!line) continue;
+                
+                // Check for date pattern: [dd/mm/yy, hh:mm AM/PM]
+                const dateMatch = line.match(/\[(\d{2}\/\d{2}\/\d{2}),\s*(\d{1,2}:\d{2}:\d{2}\s*[AP]M)\]/);
+                
+                if (dateMatch) {
+                    const dateStr = dateMatch[1];
+                    const timeStr = dateMatch[2];
+                    
+                    // Update current date if it's a new day
+                    if (dateStr !== currentDate) {
+                        currentDate = dateStr;
+                    }
+                    
+                    // Extract sender and message
+                    const afterDateTime = line.substring(dateMatch[0].length).trim();
+                    const separatorIndex = afterDateTime.indexOf(':');
+                    
+                    if (separatorIndex === -1) continue;
+                    
+                    const sender = afterDateTime.substring(0, separatorIndex).trim();
+                    let messageText = afterDateTime.substring(separatorIndex + 1).trim();
+                    
+                    // Handle omitted media/document
+                    if (messageText.includes('omitted')) {
+                        if (messageText.includes('image')) {
+                            messageText = '📷 Image omitted';
+                        } else if (messageText.includes('document') || messageText.includes('PDF') || messageText.includes('docx')) {
+                            messageText = '📎 Document omitted';
+                        } else if (messageText.includes('video')) {
+                            messageText = '🎬 Video omitted';
+                        } else if (messageText.includes('audio')) {
+                            messageText = '🎵 Audio omitted';
+                        }
+                    }
+                    
+                    // Check for links
+                    const urlRegex = /(https?:\/\/[^\s]+)/g;
+                    const links = messageText.match(urlRegex);
+                    
+                    messages.push({
+                        date: dateStr,
+                        time: timeStr,
+                        sender: sender,
+                        message: messageText,
+                        hasLinks: !!links,
+                        links: links || [],
+                        isDocument: messageText.includes('Document omitted') || messageText.includes('PDF') || messageText.includes('docx'),
+                        isImage: messageText.includes('Image omitted'),
+                        isMedia: messageText.includes('omitted') && !messageText.includes('Document omitted')
+                    });
+                } else if (messages.length > 0) {
+                    // Continuation of previous message
+                    messages[messages.length - 1].message += '\n' + line;
+                }
+            }
+            
+            return {
+                messages: messages,
+                participants: [...new Set(messages.map(msg => msg.sender))],
+                totalMessages: messages.length
+            };
+        }
+        
+        // Display the chat in the UI
+        function displayChat(chatData) {
+            // Hide upload section and no messages placeholder
+            uploadSection.style.display = 'none';
+            noMessages.style.display = 'none';
+            
+            // Clear previous messages
+            messagesContainer.innerHTML = '';
+            
+            // Show chat info in header
+            const chatInfo = document.querySelector('.chat-info');
+            if (chatInfo) {
+                chatInfo.innerHTML = `
+                    <h2>${chatData.participants.join(' & ')}</h2>
+                    <p>${chatData.totalMessages} messages</p>
+                `;
+            }
+            
+            // Group messages by date
+            const messagesByDate = {};
+            chatData.messages.forEach(msg => {
+                if (!messagesByDate[msg.date]) {
+                    messagesByDate[msg.date] = [];
+                }
+                messagesByDate[msg.date].push(msg);
+            });
+            
+            // Display messages grouped by date
+            Object.keys(messagesByDate).forEach(date => {
+                // Add date separator
+                const dateSeparator = document.createElement('div');
+                dateSeparator.className = 'date-separator';
+                dateSeparator.innerHTML = `<span>${formatDate(date)}</span>`;
+                messagesContainer.appendChild(dateSeparator);
+                
+                // Add messages for this date
+                messagesByDate[date].forEach(msg => {
+                    const messageElement = createMessageElement(msg);
+                    messagesContainer.appendChild(messageElement);
+                });
+            });
+            
+            // Scroll to bottom of chat
+            setTimeout(() => {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, 100);
+        }
+        
+        // Create a message element
+        function createMessageElement(msg) {
+            const isUser = msg.sender.includes('Arjun') || msg.sender.includes('~Arjun');
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'other'}`;
+            
+            let messageContent = `<div class="message-sender">${formatSenderName(msg.sender)}</div>`;
+            messageContent += `<div class="message-text">${formatMessageText(msg.message)}</div>`;
+            
+            // Add document/icon for media
+            if (msg.isDocument) {
+                messageContent += `<div class="message-document"><i class="fas fa-file-pdf"></i> Document</div>`;
+            } else if (msg.isImage) {
+                messageContent += `<div class="message-image"><i class="fas fa-image"></i> Image</div>`;
+            } else if (msg.isMedia) {
+                messageContent += `<div class="message-image"><i class="fas fa-film"></i> Media</div>`;
+            }
+            
+            // Add links if present
+            if (msg.hasLinks && msg.links.length > 0) {
+                msg.links.forEach(link => {
+                    messageContent += `<div class="message-link"><i class="fas fa-link"></i> <a href="${link}" target="_blank">${link}</a></div>`;
+                });
+            }
+            
+            messageContent += `<div class="message-meta"><span class="message-time">${formatTime(msg.time)}</span></div>`;
+            
+            messageDiv.innerHTML = `
+                <div class="message-content">
+                    ${messageContent}
+                </div>
+            `;
+            
+            return messageDiv;
+        }
+        
+        // Format sender name
+        function formatSenderName(sender) {
+            // Remove special characters and prefixes
+            return sender.replace(/[~‎]/g, '').trim() || 'Unknown';
+        }
+        
+        // Format message text with line breaks
+        function formatMessageText(text) {
+            return text.replace(/\n/g, '<br>');
+        }
+        
+        // Format date from dd/mm/yy to a more readable format
+        function formatDate(dateStr) {
+            const parts = dateStr.split('/');
+            if (parts.length !== 3) return dateStr;
+            
+            const day = parts[0];
+            const month = parts[1];
+            const year = '20' + parts[2];
+            
+            const date = new Date(year, month - 1, day);
+            
+            // Format: Monday, 25 March 2023
+            return date.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+        }
+        
+        // Format time from WhatsApp format to a simpler format
+        function formatTime(timeStr) {
+            // Remove seconds for cleaner display
+            return timeStr.replace(/:\d{2}\s/, ' ');
+        }
+        
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        // Clear chat data
+        function clearChatData() {
+            sessionStorage.removeItem(STORAGE_KEY);
+            uploadSection.style.display = 'block';
+            noMessages.style.display = 'block';
+            messagesContainer.innerHTML = '';
+            
+            // Reset chat info
+            const chatInfo = document.querySelector('.chat-info');
+            if (chatInfo) {
+                chatInfo.innerHTML = `
+                    <h2>Chat Viewer</h2>
+                    <p>Upload WhatsApp chat export</p>
+                `;
+            }
+            
+            // Reset file input
+            fileInput.value = '';
+            fileName.textContent = 'No file selected';
+        }
+        
+        // Add a button to clear chat
+        function addClearButton() {
+            // Check if clear button already exists
+            if (document.getElementById('clearChatBtn')) return;
+            
+            const clearButton = document.createElement('button');
+            clearButton.id = 'clearChatBtn';
+            clearButton.innerHTML = '<i class="fas fa-trash"></i> Clear Chat';
+            clearButton.style.position = 'absolute';
+            clearButton.style.right = '15px';
+            clearButton.style.top = '15px';
+            clearButton.style.backgroundColor = '#e53935';
+            clearButton.style.color = 'white';
+            clearButton.style.border = 'none';
+            clearButton.style.padding = '8px 15px';
+            clearButton.style.borderRadius = '20px';
+            clearButton.style.fontSize = '13px';
+            clearButton.style.cursor = 'pointer';
+            clearButton.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+            clearButton.style.transition = 'all 0.2s';
+            
+            clearButton.addEventListener('mouseenter', () => {
+                clearButton.style.backgroundColor = '#c62828';
+            });
+            
+            clearButton.addEventListener('mouseleave', () => {
+                clearButton.style.backgroundColor = '#e53935';
+            });
+            
+            clearButton.addEventListener('click', clearChatData);
+            
+            document.querySelector('.header').style.position = 'relative';
+            document.querySelector('.header').appendChild(clearButton);
+        }
+        
+        // Add clear button when chat is displayed
+        const originalDisplayChat = displayChat;
+        displayChat = function(chatData) {
+            originalDisplayChat(chatData);
+            addClearButton();
+        };
+        
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initApp);
+        
+        // Clear chat data on page refresh if needed
+        window.addEventListener('beforeunload', function() {
+            // We're using sessionStorage, so data persists during session
+            // But you can uncomment the line below to clear on page refresh
+            // sessionStorage.removeItem(STORAGE_KEY);
+        });
+    </script>
+</body>
+</html>
