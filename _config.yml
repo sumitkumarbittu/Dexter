@@ -1,0 +1,29 @@
+# -----------------------------
+# Jekyll ignore rules
+# -----------------------------
+
+exclude:
+  # Node / React
+  - node_modules
+  - package.json
+  - package-lock.json
+  - yarn.lock
+
+  # React app folder (your case)
+  - React Login Page/node_modules
+  - React Login Page/src
+  - React Login Page/public
+  - React Login Page/package.json
+  - React Login Page/package-lock.json
+  - React Login Page/yarn.lock
+
+  # Build tools & configs
+  - webpack.config.js
+  - vite.config.js
+  - babel.config.js
+  - postcss.config.js
+  - tailwind.config.js
+
+  # Misc
+  - README.md
+  - LICENSE
