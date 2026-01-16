@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Easy Database Builder</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #0f172a;
+  color: #e5e7eb;
+  padding: 20px;
+}
+.container {
+  max-width: 1200px;
+  margin: auto;
+}
+.row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+input, select, button {
+  padding: 8px;
+  border-radius: 6px;
+  border: none;
+}
+input, select {
+  background: #020617;
+  color: #e5e7eb;
+}
+button {
+  background: #2563eb;
+  color: white;
+  cursor: pointer;
+}
+button.gray { background: #334155; }
+button.red { background: #dc2626; }
+pre {
+  background: #020617;
+  padding: 14px;
+  border-radius: 8px;
+  margin-top: 14px;
+  overflow-x: auto;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<h2>📦 Easy Database Builder</h2>
+<p>Simple words • Auto validation • Safe SQL</p>
+
+<div id="fields"></div>
+
+<div class="row">
+  <button onclick="addField()">➕ Add Field</button>
+  <button class="gray" onclick="generate()">⚡ Generate</button>
+  <button class="gray" onclick="copyCode()">📋 Copy</button>
+  <button class="gray" onclick="downloadCode()">⬇ Download</button>
+  <button class="red" onclick="clearAll()">🗑 Clear</button>
+</div>
+
+<pre id="output">// server.js will appear here</pre>
+
+</div>
+
+<script>
+/* ============================
+   GLOBAL SCHEMA (ARRAY)
+============================ */
+let schema = [];
+
+/* ============================
+   FIELD UI
+============================ */
+function addField() {
+  const field = {
+    name: "",
+    type: "text",
+    limit: "",
+    scale: "",
+    required: true
+  };
+  schema.push(field);
+  render(field);
+}
+
+function render(field) {
+  const div = document.createElement("div");
+  div.className = "row";
+
+  div.innerHTML = `
+    <input placeholder="Field name" />
+    <select>
+      <option value="text">Short text</option>
+      <option value="number">Number</option>
+      <option value="amount">Amount</option>
+      <option value="yesno">Yes / No</option>
+      <option value="date">Date</option>
+    </select>
+    <input placeholder="Max length / digits" style="display:none;width:150px">
+    <input placeholder="Digits after dot" style="display:none;width:140px">
+    <select>
+      <option value="yes">Required</option>
+      <option value="no">Optional</option>
+    </select>
+    <button class="red">✖</button>
+  `;
+
+  document.getElementById("fields").appendChild(div);
+  const [nameI, typeS, limitI, scaleI, reqS, del] = div.children;
+
+  function refresh() {
+    limitI.style.display = "none";
+    scaleI.style.display = "none";
+
+    if (typeS.value === "text" || typeS.value === "number")
+      limitI.style.display = "inline-block";
+
+    if (typeS.value === "amount") {
+      limitI.style.display = "inline-block";
+      scaleI.style.display = "inline-block";
+    }
+  }
+
+  refresh();
+
+  [nameI, typeS, limitI, scaleI, reqS].forEach(el => {
+    el.oninput = el.onchange = () => {
+      field.name = nameI.value.trim();
+      field.type = typeS.value;
+      field.limit = limitI.value;
+      field.scale = scaleI.value;
+      field.required = reqS.value === "yes";
+      refresh();
+    };
+  });
+
+  del.onclick = () => {
+    schema = schema.filter(s => s !== field);
+    div.remove();
+  };
+}
+
+/* ============================
+   GENERATOR
+============================ */
+function generate() {
+
+  /* 1️⃣ ARRAY → DICTIONARY */
+  const dict = {};
+  schema.forEach(f => {
+    if (f.name) dict[f.name] = f;
+  });
+
+  /* 2️⃣ SQL TYPE MAPPER */
+  const typeMap = {
+    text: f => `VARCHAR(${f.limit || 255})`,
+    number: f => `INT`,
+    amount: f => `DECIMAL(${f.limit || 10},${f.scale || 2})`,
+    yesno: _ => `BOOLEAN`,
+    date: _ => `DATE`
+  };
+
+  /* 3️⃣ CREATE TABLE */
+  let columns = `
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+`;
+
+  for (const [name, f] of Object.entries(dict)) {
+    columns += `  ${name} ${typeMap[f.type](f)} ${f.required ? "NOT NULL" : "NULL"},\n`;
+  }
+
+  /* ============================
+     FINAL SERVER.JS
+  ============================ */
+  const serverJs = `
+import express from "express";
+import pkg from "pg";
+const { Pool } = pkg;
+
+const app = express();
+app.use(express.json());
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
+
+/* 1️⃣ GLOBAL SCHEMA DICTIONARY */
+const schema = ${JSON.stringify(dict, null, 2)};
+
+/* 2️⃣ SQL TYPE MAPPER */
+const typeMap = {
+  text: f => \`VARCHAR(\${f.limit || 255})\`,
+  number: _ => "INT",
+  amount: f => \`DECIMAL(\${f.limit || 10},\${f.scale || 2})\`,
+  yesno: _ => "BOOLEAN",
+  date: _ => "DATE"
+};
+
+/* 3️⃣ AUTO CREATE TABLE */
+function createTableSQL() {
+  let cols = "id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,\\n";
+  for (const [name, f] of Object.entries(schema)) {
+    cols += \`\${name} \${typeMap[f.type](f)} \${f.required ? "NOT NULL" : "NULL"},\\n\`;
+  }
+  return \`CREATE TABLE IF NOT EXISTS records (\\n\${cols.slice(0,-2)}\\n);\`;
+}
+
+/* 4️⃣ VALIDATION (CRITICAL) */
+function validate(body) {
+  const keys = Object.keys(body);
+
+  for (const name in schema) {
+    if (schema[name].required && !(name in body))
+      return \`\${name} is required\`;
+  }
+
+  for (const key of keys) {
+    if (!schema[key])
+      return \`Extra field: \${key}\`;
+  }
+
+  return null;
+}
+
+/* 5️⃣ DYNAMIC INSERT */
+function insertSQL(body) {
+  const cols = Object.keys(body);
+  const vals = Object.values(body);
+  const p = cols.map((_, i) => \`$\${i+1}\`).join(",");
+
+  return {
+    text: \`INSERT INTO records (\${cols.join(",")}) VALUES (\${p})\`,
+    values: vals
+  };
+}
+
+(async () => {
+  await pool.query(createTableSQL());
+})();
+
+app.get("/health", (_, res) => res.json({ status: "ok" }));
+
+app.post("/api/save", async (req, res) => {
+  const err = validate(req.body);
+  if (err) return res.status(400).json({ error: err });
+
+  const q = insertSQL(req.body);
+  await pool.query(q.text, q.values);
+
+  res.json({ success: true });
+});
+
+app.listen(3000);
+`;
+
+  document.getElementById("output").textContent = serverJs.trim();
+}
+
+/* ============================
+   UTIL
+============================ */
+function copyCode() {
+  navigator.clipboard.writeText(output.textContent);
+}
+function downloadCode() {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([output.textContent]));
+  a.download = "server.js";
+  a.click();
+}
+function clearAll() {
+  schema = [];
+  fields.innerHTML = "";
+  output.textContent = "";
+}
+</script>
+</body>
+</html>
