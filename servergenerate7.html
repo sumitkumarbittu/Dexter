@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Easy Database Builder</title>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #020617;
+            --bg-input: #0b1220;
+            --text-primary: #e5e7eb;
+            --text-secondary: rgba(229, 231, 235, 0.75);
+            --accent-blue: #2563eb;
+            --accent-green: #059669;
+            --accent-gray: #334155;
+            --accent-red: #dc2626;
+            --border-radius: 8px;
+            --padding: 10px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.5;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h2 {
+            margin-bottom: 4px;
+            font-size: 1.75rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .note {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 1rem;
+            padding: 8px 12px;
+            background: var(--bg-secondary);
+            border-radius: var(--border-radius);
+            width: fit-content;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .field {
+            background: var(--bg-secondary);
+            padding: var(--padding);
+            border-radius: var(--border-radius);
+            margin-bottom: 10px;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .field:hover {
+            border-color: #334155;
+            transform: translateY(-1px);
+        }
+
+        .field:focus-within {
+            border-color: var(--accent-blue);
+        }
+
+        .row {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        input, select, button {
+            padding: 7px 10px;
+            border-radius: 6px;
+            border: 1px solid transparent;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        input, select {
+            background: var(--bg-input);
+            color: var(--text-primary);
+            border: 1px solid #1e293b;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+        }
+
+        button {
+            background: var(--accent-blue);
+            color: white;
+            cursor: pointer;
+            font-weight: 500;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        button:hover:not(:disabled) {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        button.gray {
+            background: var(--accent-gray);
+        }
+
+        button.green {
+            background: var(--accent-green);
+        }
+
+        button.red {
+            background: var(--accent-red);
+        }
+
+        button.small {
+            padding: 4px 8px;
+            font-size: 12px;
+            min-width: 32px;
+            height: 28px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 1.5rem 0;
+        }
+
+        pre {
+            background: var(--bg-secondary);
+            padding: 14px;
+            border-radius: var(--border-radius);
+            margin-top: 1.5rem;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .field-name {
+            min-width: 150px;
+            flex: 1;
+        }
+
+        .field-type {
+            min-width: 140px;
+        }
+
+        .field-limit, .field-scale {
+            width: 140px;
+        }
+
+        .field-required {
+            min-width: 120px;
+        }
+
+        .hint {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            padding-left: 4px;
+        }
+
+        .field-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .field-title {
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .preset-badge {
+            background: var(--accent-green);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            margin-left: 8px;
+        }
+
+        .preset-tag {
+            background: #1e293b;
+            color: #94a3b8;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            margin-left: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            input, select, button {
+                width: 100%;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            .controls button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2><span>📦</span> Easy Database Builder</h2>
+        <p class="note">Simple words · Safe SQL · Auto validation</p>
+        
+        <label class="checkbox-container">
+            <input type="checkbox" id="autoCreated" checked>
+            <span>Auto add created date & time</span>
+        </label>
+        
+        <div id="fields"></div>
+        
+        <div class="controls">
+            <button onclick="addField()">➕ Add Field</button>
+            <button class="gray" onclick="generate()">⚡ Generate</button>
+            <button class="green" onclick="copyCode()">📋 Copy</button>
+            <button class="gray" onclick="downloadCode()">⬇ Download</button>
+            <button class="red" onclick="clearAll()">🗑 Clear</button>
+        </div>
+        
+        <pre id="output">// Generated server.js will appear here</pre>
+    </div>
+
+    <script>
+        const TYPE_PRESETS = {
+            text: {
+                limit: "20",
+                hint: "Max characters (default: 20)"
+            },
+            description: {
+                limit: "200",
+                hint: "Max characters (default: 200)"
+            },
+            number: {
+                limit: "6",
+                hint: "Max digits (default: 6)"
+            },
+            amount: {
+                limit: "6",
+                scale: "2",
+                hint: "Format: total_digits.decimal_places (default: 6.2)"
+            },
+            file: {
+                limit: "5",
+                hint: "Max file size in MB (default: 5MB)"
+            },
+            yesno: {
+                hint: "Boolean field (true/false)"
+            },
+            datetime: {
+                hint: "Date and time"
+            },
+            date: {
+                hint: "Date only"
+            }
+        };
+
+        let schema = [];
+
+        function addField() {
+            schema.push({
+                name: "",
+                type: "text",
+                limit: "",
+                scale: "",
+                required: true
+            });
+            render();
+        }
+
+        function moveField(idx, dir) {
+            if (idx + dir < 0 || idx + dir >= schema.length) return;
+            
+            [schema[idx], schema[idx + dir]] = [schema[idx + dir], schema[idx]];
+            render();
+        }
+
+        function updateField(index, property, value) {
+            schema[index][property] = value;
+        }
+
+        function deleteField(index) {
+            schema.splice(index, 1);
+            render();
+        }
+
+        function applyPreset(typeSelect, limitInput, scaleInput) {
+            const preset = TYPE_PRESETS[typeSelect.value];
+            const fieldIndex = parseInt(typeSelect.closest('.field').dataset.index);
+            
+            if (preset) {
+                // Only apply preset if field is empty
+                if (!limitInput.value && preset.limit) {
+                    limitInput.value = preset.limit;
+                    updateField(fieldIndex, 'limit', preset.limit);
+                }
+                if (!scaleInput.value && preset.scale) {
+                    scaleInput.value = preset.scale;
+                    updateField(fieldIndex, 'scale', preset.scale);
+                }
+            }
+        }
+
+        function updateFieldVisibility(typeSelect, limitInput, scaleInput, limitLabel, scaleLabel) {
+            const preset = TYPE_PRESETS[typeSelect.value];
+            
+            // Reset all
+            limitInput.style.display = 'none';
+            scaleInput.style.display = 'none';
+            limitLabel.style.display = 'none';
+            scaleLabel.style.display = 'none';
+            
+            // Show relevant fields based on type
+            switch (typeSelect.value) {
+                case 'text':
+                case 'description':
+                case 'number':
+                case 'file':
+                    limitInput.style.display = 'inline-block';
+                    limitLabel.style.display = 'inline-block';
+                    break;
+                case 'amount':
+                    limitInput.style.display = 'inline-block';
+                    scaleInput.style.display = 'inline-block';
+                    limitLabel.style.display = 'inline-block';
+                    scaleLabel.style.display = 'inline-block';
+                    break;
+            }
+        }
+
+        function render() {
+            const fieldsContainer = document.getElementById('fields');
+            fieldsContainer.innerHTML = '';
+
+            schema.forEach((field, index) => {
+                const fieldElement = document.createElement('div');
+                fieldElement.className = 'field';
+                fieldElement.dataset.index = index;
+                
+                const preset = TYPE_PRESETS[field.type] || {};
+                
+                fieldElement.innerHTML = `
+                    <div class="field-header">
+                        <div class="field-title">
+                            Field ${index + 1}
+                            ${preset.hint ? `<span class="preset-badge">${field.type}</span>` : ''}
+                        </div>
+                        <div>
+                            <button class="small gray" onclick="moveField(${index}, -1)" 
+                                    ${index === 0 ? 'disabled' : ''}>↑</button>
+                            <button class="small gray" onclick="moveField(${index}, 1)" 
+                                    ${index === schema.length - 1 ? 'disabled' : ''}>↓</button>
+                            <button class="small red" onclick="deleteField(${index})">✖</button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <input class="field-name" placeholder="Field name" value="${field.name}">
+                        <select class="field-type">
+                            <option value="text">Short text</option>
+                            <option value="description">Description</option>
+                            <option value="number">Number</option>
+                            <option value="amount">Amount</option>
+                            <option value="yesno">Yes / No</option>
+                            <option value="datetime">Date & Time</option>
+                            <option value="date">Date Only</option>
+                            <option value="file">File</option>
+                        </select>
+                        <span class="preset-tag" style="display:none"></span>
+                        <input class="field-limit" placeholder="Length / digits">
+                        <input class="field-scale" placeholder="Decimal places">
+                        <select class="field-required">
+                            <option value="yes">Required</option>
+                            <option value="no">Optional</option>
+                        </select>
+                    </div>
+                    <div class="hint">${preset.hint || ''}</div>
+                `;
+                
+                fieldsContainer.appendChild(fieldElement);
+                
+                const [nameInput, typeSelect] = fieldElement.querySelectorAll('.field-name, .field-type');
+                const limitInput = fieldElement.querySelector('.field-limit');
+                const scaleInput = fieldElement.querySelector('.field-scale');
+                const requiredSelect = fieldElement.querySelector('.field-required');
+                const hintElement = fieldElement.querySelector('.hint');
+                const presetTag = fieldElement.querySelector('.preset-tag');
+                
+                // Set initial values
+                typeSelect.value = field.type;
+                limitInput.value = field.limit;
+                scaleInput.value = field.scale;
+                requiredSelect.value = field.required ? "yes" : "no";
+                
+                // Create labels for limit/scale inputs
+                const limitLabel = document.createElement('span');
+                limitLabel.textContent = typeSelect.value === 'file' ? 'MB' : 'digits';
+                limitLabel.style.display = 'none';
+                limitLabel.style.marginLeft = '4px';
+                limitLabel.style.fontSize = '12px';
+                limitLabel.style.color = 'var(--text-secondary)';
+                
+                const scaleLabel = document.createElement('span');
+                scaleLabel.textContent = 'decimals';
+                scaleLabel.style.display = 'none';
+                scaleLabel.style.marginLeft = '4px';
+                scaleLabel.style.fontSize = '12px';
+                scaleLabel.style.color = 'var(--text-secondary)';
+                
+                limitInput.parentNode.insertBefore(limitLabel, limitInput.nextSibling);
+                scaleInput.parentNode.insertBefore(scaleLabel, scaleInput.nextSibling);
+                
+                // Initial visibility setup
+                updateFieldVisibility(typeSelect, limitInput, scaleInput, limitLabel, scaleLabel);
+                applyPreset(typeSelect, limitInput, scaleInput);
+                
+                const updateHandler = (event) => {
+                    const target = event.target;
+                    const fieldIndex = parseInt(fieldElement.dataset.index);
+                    
+                    if (target === nameInput) {
+                        updateField(fieldIndex, 'name', nameInput.value.trim());
+                    } else if (target === typeSelect) {
+                        updateField(fieldIndex, 'type', typeSelect.value);
+                        updateFieldVisibility(typeSelect, limitInput, scaleInput, limitLabel, scaleLabel);
+                        applyPreset(typeSelect, limitInput, scaleInput);
+                        
+                        // Update hint
+                        const newPreset = TYPE_PRESETS[typeSelect.value];
+                        hintElement.textContent = newPreset?.hint || '';
+                        
+                        // Update preset tag
+                        presetTag.textContent = typeSelect.value;
+                        presetTag.style.display = 'inline-block';
+                    } else if (target === limitInput) {
+                        updateField(fieldIndex, 'limit', limitInput.value);
+                    } else if (target === scaleInput) {
+                        updateField(fieldIndex, 'scale', scaleInput.value);
+                    } else if (target === requiredSelect) {
+                        updateField(fieldIndex, 'required', requiredSelect.value === "yes");
+                    }
+                };
+                
+                nameInput.addEventListener('input', updateHandler);
+                typeSelect.addEventListener('change', updateHandler);
+                limitInput.addEventListener('input', updateHandler);
+                scaleInput.addEventListener('input', updateHandler);
+                requiredSelect.addEventListener('change', updateHandler);
+            });
+        }
+
+        function generate() {
+            const fieldDict = {};
+            schema.forEach(field => {
+                if (field.name) {
+                    fieldDict[field.name] = field;
+                }
+            });
+
+            const serverJs = `
+import express from "express";
+import multer from "multer";
+import pkg from "pg";
+const { Pool } = pkg;
+
+const upload = multer();
+const app = express();
+app.use(express.json());
+
+const schema = ${JSON.stringify(fieldDict, null, 2)};
+const AUTO_CREATED_AT = ${document.getElementById('autoCreated').checked};
+
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+});
+
+const typeMap = {
+    text: field => \`VARCHAR(\${field.limit || 20})\`,
+    description: field => \`VARCHAR(\${field.limit || 200})\`,
+    number: field => {
+        const digits = parseInt(field.limit, 10) || 0;
+        return digits > 9 ? "BIGINT" : "INT";
+    },
+    amount: field => \`DECIMAL(\${field.limit || 6}, \${field.scale || 2})\`,
+    yesno: () => "BOOLEAN",
+    datetime: () => "TIMESTAMP",
+    date: () => "DATE",
+    file: () => "BYTEA"
+};
+
+function createTableSQL() {
+    let columns = '"id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,\\n';
+    
+    for (const [name, field] of Object.entries(schema)) {
+        columns += \`"\${name}" \${typeMap[field.type](field)} \${field.required ? "NOT NULL" : "NULL"},\\n\`;
+    }
+    
+    if (AUTO_CREATED_AT) {
+        columns += '"created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,\\n';
+    }
+    
+    return \`CREATE TABLE IF NOT EXISTS records (\\n\${columns.slice(0, -2)}\\n);\`;
+}
+
+function validate(body, files) {
+    // Required field validation
+    for (const [name, field] of Object.entries(schema)) {
+        if (field.type === "file") {
+            if (field.required && !files[name]) {
+                return \`\${name} file required\`;
+            }
+            // File size validation
+            if (files[name]) {
+                const maxMB = parseInt(field.limit || 5, 10);
+                if (files[name].size > maxMB * 1024 * 1024) {
+                    return \`\${name} exceeds \${maxMB}MB limit\`;
+                }
+            }
+        } else {
+            const value = body[name];
+            if (field.required && (value === undefined || value === null || String(value).trim() === "")) {
+                return \`\${name} is required\`;
+            }
+            
+            // Numeric validation for number fields
+            if ((field.type === "number" || field.type === "amount") && value !== undefined && value !== null && String(value).trim() !== "") {
+                const numValue = String(value).trim();
+                if (!/^-?\\d+(\\.\\d+)?$/.test(numValue)) {
+                    return \`\${name} must be a valid number\`;
+                }
+                
+                // Amount precision validation
+                if (field.type === "amount") {
+                    const [integerPart = "", decimalPart = ""] = numValue.split(".");
+                    const maxInteger = parseInt(field.limit || 6, 10) - parseInt(field.scale || 2, 10);
+                    const maxDecimal = parseInt(field.scale || 2, 10);
+                    
+                    if (integerPart.length > maxInteger) {
+                        return \`\${name} integer part exceeds \${maxInteger} digits\`;
+                    }
+                    if (decimalPart.length > maxDecimal) {
+                        return \`\${name} decimal part exceeds \${maxDecimal} places\`;
+                    }
+                }
+                
+                // Range validation for numbers
+                if (field.type === "number") {
+                    const maxDigits = parseInt(field.limit || 6, 10);
+                    const numStr = numValue.replace(/^-/, '');
+                    if (numStr.length > maxDigits) {
+                        return \`\${name} exceeds \${maxDigits} digits\`;
+                    }
+                }
+            }
+            
+            // Date validation
+            if ((field.type === "datetime" || field.type === "date") && value && String(value).trim() !== "") {
+                const dateValue = new Date(value);
+                if (isNaN(dateValue.getTime())) {
+                    return \`\${name} must be a valid date\`;
+                }
+            }
+        }
+    }
+    
+    // Extra field validation
+    for (const key of Object.keys(body)) {
+        if (!schema[key]) {
+            return \`Extra field not allowed: \${key}\`;
+        }
+    }
+    
+    return null;
+}
+
+function buildInsertQuery(body, files) {
+    const columns = [];
+    const values = [];
+    
+    for (const [name, field] of Object.entries(schema)) {
+        if (field.type === "file" && files[name]) {
+            columns.push(\`"\${name}"\`);
+            values.push(files[name].buffer);
+        } else if (name in body) {
+            columns.push(\`"\${name}"\`);
+            
+            // Type conversion
+            let value = body[name];
+            if (field.type === "number") {
+                value = parseInt(value, 10);
+            } else if (field.type === "amount") {
+                value = parseFloat(value);
+            } else if (field.type === "yesno") {
+                value = String(value).toLowerCase() === "true" || value === "1" || value === 1;
+            }
+            
+            values.push(value);
+        }
+    }
+    
+    const placeholders = columns.map((_, i) => \`$\${i + 1}\`).join(",");
+    return {
+        text: \`INSERT INTO records (\${columns.join(",")}) VALUES (\${placeholders})\`,
+        values: values
+    };
+}
+
+app.post("/api/save", upload.any(), async (req, res) => {
+    try {
+        const fileMap = {};
+        (req.files || []).forEach(file => {
+            fileMap[file.fieldname] = file;
+        });
+        
+        const error = validate(req.body, fileMap);
+        if (error) {
+            return res.status(400).json({ error });
+        }
+        
+        const query = buildInsertQuery(req.body, fileMap);
+        const result = await pool.query(query.text, query.values);
+        
+        res.json({ 
+            success: true, 
+            id: result.rows[0]?.id 
+        });
+    } catch (error) {
+        console.error("Save error:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+app.get("/health", (_, res) => {
+    res.json({ 
+        status: "ok", 
+        timestamp: new Date().toISOString(),
+        fields: Object.keys(schema).length
+    });
+});
+
+(async () => {
+    try {
+        await pool.query(createTableSQL());
+        console.log("Table created/verified successfully");
+    } catch (error) {
+        console.error("Table creation error:", error);
+    }
+})();
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(\`Server running on port \${PORT}\`);
+    console.log(\`Table schema has \${Object.keys(schema).length} fields\`);
+});
+`;
+
+            document.getElementById('output').textContent = serverJs.trim();
+        }
+
+        function copyCode() {
+            const output = document.getElementById('output');
+            navigator.clipboard.writeText(output.textContent)
+                .then(() => {
+                    const originalText = output.textContent;
+                    output.textContent = "✅ Code copied to clipboard!";
+                    output.style.color = "#059669";
+                    setTimeout(() => {
+                        output.textContent = originalText;
+                        output.style.color = "";
+                    }, 1500);
+                })
+                .catch(err => {
+                    console.error('Failed to copy: ', err);
+                    output.textContent = "❌ Failed to copy code";
+                    output.style.color = "#dc2626";
+                    setTimeout(() => {
+                        output.textContent = "// Generated server.js will appear here";
+                        output.style.color = "";
+                    }, 2000);
+                });
+        }
+
+        function downloadCode() {
+            const content = document.getElementById('output').textContent;
+            if (content === "// Generated server.js will appear here") {
+                alert("Please generate code first!");
+                return;
+            }
+            
+            const blob = new Blob([content], { type: 'application/javascript' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'server.js';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function clearAll() {
+            if (schema.length > 0 && !confirm("Are you sure you want to clear all fields?")) {
+                return;
+            }
+            
+            schema = [];
+            render();
+            document.getElementById('output').textContent = "// Generated server.js will appear here";
+        }
+
+        // Initialize with one field
+        addField();
+    </script>
+</body>
+</html>
