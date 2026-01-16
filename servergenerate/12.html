@@ -2776,6 +2776,7 @@
             const serverCode = `import express from "express";
 import multer from "multer";
 import pkg from "pg";
+import cors from "cors";
 const { Pool } = pkg;
 
 // Configure multer with file size limits
@@ -2786,6 +2787,7 @@ const upload = multer({
 });
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
 const TABLE_NAME = "${tableName}";
@@ -3347,7 +3349,7 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 # Install dependencies (production only)
-RUN npm ci --only=production
+RUN npm install --omit=dev
 
 # Copy app source
 COPY . .
@@ -3492,7 +3494,7 @@ __mocks__`;
     env: node
     region: oregon
     plan: free
-    buildCommand: npm ci
+    buildCommand: npm install --omit=dev
     startCommand: node server.js
     envVars:
       - key: NODE_ENV
@@ -3821,6 +3823,7 @@ AWS_BUCKET_NAME=your-bucket-name`;
                     name: `${tableName}-api`,
                     version: '1.0.0',
                     description: `API for ${tableName} database`,
+                    type: 'module',
                     main: 'server.js',
                     scripts: {
                         start: 'node server.js',
@@ -3848,13 +3851,13 @@ AWS_BUCKET_NAME=your-bucket-name`;
                 const url = URL.createObjectURL(content);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `${tableName}-project.zip`;
+                a.download = `${tableName}.zip`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
                 
-                showToast(`${files.length + 1} files downloaded as ${tableName}-project.zip`, 'success');
+                showToast(`${files.length + 1} files downloaded as ${tableName}.zip`, 'success');
                 hideFileModal();
             } catch (error) {
                 console.error('Error creating ZIP:', error);
@@ -3912,6 +3915,7 @@ AWS_BUCKET_NAME=your-bucket-name`;
                     name: `${tableName}-api`,
                     version: '1.0.0',
                     description: `API for ${tableName} database`,
+                    "type": "module",
                     main: 'server.js',
                     scripts: {
                         start: 'node server.js',
@@ -3937,13 +3941,13 @@ AWS_BUCKET_NAME=your-bucket-name`;
                 const url = URL.createObjectURL(content);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `${tableName}-project.zip`;
+                a.download = `${tableName}.zip`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
                 
-                showToast(`${files.length + 1} files downloaded as ${tableName}-project.zip`, 'success');
+                showToast(`${files.length + 1} files downloaded as ${tableName}.zip`, 'success');
             } catch (error) {
                 console.error('Error creating ZIP:', error);
                 showToast('Error creating ZIP file. Please try again.', 'error');
