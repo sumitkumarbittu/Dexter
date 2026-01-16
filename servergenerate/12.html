@@ -3191,6 +3191,43 @@ app.get("/health", (_, res) => {
     });
 });
 
+// Root route
+app.get("/", (_, res) => {
+    res.send(\`
+        <!DOCTYPE html>
+        <html>
+            <head>
+                <title>Database API Server</title>
+                <style>
+                    body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+                    h1 { color: #333; }
+                    .endpoint { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 5px; }
+                    .method { color: #007bff; font-weight: bold; }
+                </style>
+            </head>
+            <body>
+                <h1>🚀 Database API Server</h1>
+                <p>API is running successfully!</p>
+                
+                <h2>Available Endpoints:</h2>
+                <div class="endpoint">
+                    <span class="method">POST</span> /api/save - Save a record
+                </div>
+                <div class="endpoint">
+                    <span class="method">GET</span> /health - Health check
+                </div>
+                
+                <h2>Service Information:</h2>
+                <ul>
+                    <li>Service: database-api</li>
+                    <li>Version: 1.0.0</li>
+                    <li>Table: \${TABLE_NAME}</li>
+                </ul>
+            </body>
+        </html>
+    \`);
+});
+
 // Initialize database
 (async () => {
     try {
