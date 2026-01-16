@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>server.js Schema Generator</title>
+
+<style>
+  body {
+    font-family: system-ui, Arial, sans-serif;
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 20px;
+  }
+
+  h1 {
+    margin-bottom: 10px;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: auto;
+  }
+
+  .row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+
+  input, select, button {
+    padding: 8px;
+    border-radius: 6px;
+    border: none;
+    font-size: 14px;
+  }
+
+  input, select {
+    background: #020617;
+    color: #e5e7eb;
+  }
+
+  button {
+    cursor: pointer;
+    background: #2563eb;
+    color: white;
+    font-weight: 600;
+  }
+
+  button.secondary {
+    background: #334155;
+  }
+
+  button.danger {
+    background: #dc2626;
+  }
+
+  pre {
+    background: #020617;
+    border-radius: 8px;
+    padding: 14px;
+    overflow-x: auto;
+    white-space: pre;
+    font-size: 13px;
+    margin-top: 14px;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .note {
+    font-size: 13px;
+    opacity: 0.8;
+  }
+</style>
+</head>
+
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>🚀 server.js Generator</h1>
+    <span class="note">PostgreSQL · Express · Identity PK</span>
+  </div>
+
+  <p class="note">
+    <b>id</b> is auto-created as <code>BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY</code>
+  </p>
+
+  <div id="fields"></div>
+
+  <div class="row">
+    <button onclick="addField()">➕ Add Column</button>
+    <button class="secondary" onclick="generate()">⚡ Generate</button>
+    <button class="secondary" onclick="copyCode()">📋 Copy</button>
+    <button class="secondary" onclick="downloadCode()">⬇️ Download</button>
+  </div>
+
+  <pre id="output">// Generated server.js will appear here</pre>
+
+</div>
+
+<script>
+function addField() {
+  const div = document.createElement("div");
+  div.className = "row";
+
+  div.innerHTML = `
+    <input placeholder="column_name" />
+
+    <select onchange="toggleOptions(this)">
+      <option value="varchar">varchar</option>
+      <option value="int">int</option>
+      <option value="decimal">decimal</option>
+      <option value="boolean">boolean</option>
+      <option value="date">date</option>
+      <option value="timestamp">timestamp</option>
+      <option value="bytea">bytea</option>
+    </select>
+
+    <input placeholder="limit / precision" style="display:none;width:130px" />
+    <input placeholder="scale" style="display:none;width:80px" />
+
+    <select>
+      <option value="not_null">NOT NULL</option>
+      <option value="null">NULL</option>
+    </select>
+
+    <button class="danger" onclick="this.parentElement.remove()">✖</button>
+  `;
+
+  document.getElementById("fields").appendChild(div);
+}
+
+function toggleOptions(select) {
+  const div = select.parentElement;
+  const limit = div.children[2];
+  const scale = div.children[3];
+
+  limit.style.display = "none";
+  scale.style.display = "none";
+
+  if (select.value === "varchar" || select.value === "int") {
+    limit.style.display = "inline-block";
+  }
+
+  if (select.value === "decimal") {
+    limit.style.display = "inline-block";
+    scale.style.display = "inline-block";
+  }
+}
+
+function collectSchema() {
+  const schema = [];
+
+  document.querySelectorAll("#fields .row").forEach(div => {
+    const [
+      nameInput,
+      typeSelect,
+      limitInput,
+      scaleInput,
+      nullSelect
+    ] = div.children;
+
+    const name = nameInput.value.trim();
+    if (!name) return;
+
+    schema.push({
+      name,
+      type: typeSelect.value,
+      limit: limitInput.value,
+      scale: scaleInput.value,
+      nullable: nullSelect.value === "null"
+    });
+  });
+
+  return schema;
+}
+
+function generate() {
+  const fields = collectSchema();
+
+  let columns = `
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+`;
+
+  fields.forEach(f => {
+    let col = `  ${f.name} `;
+
+    if (f.type === "varchar") {
+      col += `VARCHAR(${f.limit || 255})`;
+    } else if (f.type === "int") {
+      col += `INT`;
+    } else if (f.type === "decimal") {
+      col += f.limit
+        ? `DECIMAL(${f.limit},${f.scale || 2})`
+        : `DECIMAL`;
+    } else {
+      col += f.type.toUpperCase();
+    }
+
+    col += f.nullable ? " NULL" : " NOT NULL";
+    col += ",\n";
+    columns += col;
+  });
+
+  const serverJs = `
+import express from "express";
+import cors from "cors";
+import pkg from "pg";
+
+const { Pool } = pkg;
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
+
+const CREATE_TABLE = \`
+CREATE TABLE IF NOT EXISTS records (
+${columns.slice(0, -2)}
+);
+\`;
+
+(async () => {
+  await pool.query(CREATE_TABLE);
+  console.log("Table ready");
+})();
+
+app.listen(3000, () => console.log("Server running"));
+`;
+
+  document.getElementById("output").textContent = serverJs.trim();
+}
+
+function copyCode() {
+  const code = document.getElementById("output").textContent;
+  if (!code) return alert("Generate first");
+  navigator.clipboard.writeText(code);
+  alert("Copied to clipboard");
+}
+
+function downloadCode() {
+  const code = document.getElementById("output").textContent;
+  if (!code) return alert("Generate first");
+
+  const blob = new Blob([code], { type: "application/javascript" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "server.js";
+  a.click();
+
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
