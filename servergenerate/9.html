@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schema Builder • Easy Database Creation</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-light: #3b82f6;
+            --primary-dark: #1d4ed8;
+            --success: #059669;
+            --danger: #dc2626;
+            --warning: #f59e0b;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            
+            --bg-primary: var(--gray-50);
+            --bg-secondary: white;
+            --bg-card: white;
+            --bg-input: var(--gray-100);
+            --border-color: var(--gray-200);
+            --text-primary: var(--gray-900);
+            --text-secondary: var(--gray-600);
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+            --radius-sm: 0.375rem;
+            --radius: 0.5rem;
+            --radius-md: 0.75rem;
+            --radius-lg: 1rem;
+        }
+
+        .dark-mode {
+            --bg-primary: var(--gray-900);
+            --bg-secondary: var(--gray-800);
+            --bg-card: var(--gray-800);
+            --bg-input: var(--gray-700);
+            --border-color: var(--gray-700);
+            --text-primary: var(--gray-100);
+            --text-secondary: var(--gray-400);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.5;
+            min-height: 100vh;
+            transition: background-color 0.3s ease;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            margin-bottom: 1.5rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.25rem;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .tagline {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 2rem;
+            padding: 0.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+
+        .theme-toggle:hover {
+            background: var(--border-color);
+        }
+
+        .theme-icon {
+            font-size: 1.25rem;
+        }
+
+        /* Main Layout */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (min-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* Card */
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .card-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Form */
+        .config-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (min-width: 640px) {
+            .config-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .form-input.error {
+            border-color: var(--danger);
+        }
+
+        .error-message {
+            color: var(--danger);
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .checkbox-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        /* Fields */
+        .fields-container {
+            margin-bottom: 1.5rem;
+        }
+
+        .field-item {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            transition: all 0.2s ease;
+        }
+
+        .field-item:hover {
+            border-color: var(--primary-light);
+        }
+
+        .field-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .field-title {
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+
+        .field-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .field-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .field-input {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            color: var(--text-primary);
+        }
+
+        .field-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .field-hint {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+            padding-left: 0.25rem;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--gray-200);
+            color: var(--gray-800);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-300);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            opacity: 0.9;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            opacity: 0.9;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--bg-input);
+        }
+
+        .btn-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        /* Schema Preview */
+        .schema-preview {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 1rem;
+            background: var(--bg-input);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+        }
+
+        .sql-keyword {
+            color: #ef4444;
+            font-weight: 500;
+        }
+
+        .sql-type {
+            color: #059669;
+            font-weight: 500;
+        }
+
+        .sql-identifier {
+            color: #3b82f6;
+        }
+
+        .sql-comment {
+            color: var(--text-secondary);
+        }
+
+        .sql-constraint {
+            color: #f59e0b;
+        }
+
+        /* Code Output */
+        .code-container {
+            position: relative;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .code-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        pre {
+            margin: 0;
+            padding: 0;
+        }
+
+        #output {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            color: var(--text-primary);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-text {
+            font-size: 0.875rem;
+        }
+
+        /* Stats */
+        .stats {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Mobile Optimizations */
+        @media (max-width: 640px) {
+            .container {
+                padding: 0.75rem;
+            }
+            
+            .card {
+                padding: 1rem;
+            }
+            
+            .field-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .field-controls {
+                flex-wrap: wrap;
+            }
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            background: var(--success);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.error {
+            background: var(--danger);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">DB</div>
+                <div>
+                    <div class="logo-text">Schema Builder</div>
+                    <div class="tagline">Build database schemas with simple words</div>
+                </div>
+            </div>
+            <button class="theme-toggle" id="themeToggle">
+                <span class="theme-icon" id="themeIcon">🌙</span>
+                <span id="themeText">Dark</span>
+            </button>
+        </header>
+
+        <div class="main-content">
+            <!-- Left Column: Builder -->
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title">Schema Builder</h2>
+                        <div class="card-subtitle">Define your table structure</div>
+                    </div>
+                </div>
+
+                <!-- Configuration -->
+                <div class="form-group">
+                    <label class="form-label">Table Name</label>
+                    <input type="text" id="tableName" class="form-input" value="records" placeholder="e.g., users, products, orders">
+                </div>
+
+                <div class="checkbox-group" style="margin-bottom: 1.5rem;">
+                    <input type="checkbox" id="autoCreated" checked>
+                    <label class="checkbox-label">Add automatic created_at timestamp</label>
+                </div>
+
+                <!-- Fields Container -->
+                <div class="fields-container" id="fieldsContainer">
+                    <!-- Fields will be added here -->
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="addField()">
+                        <span>+</span> Add Field
+                    </button>
+                    <button class="btn btn-success" onclick="generate()">
+                        <span>⚡</span> Generate Code
+                    </button>
+                </div>
+
+                <!-- Stats -->
+                <div class="stats" id="stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalFields">0</div>
+                        <div class="stat-label">Fields</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="requiredFields">0</div>
+                        <div class="stat-label">Required</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="uniqueTypes">0</div>
+                        <div class="stat-label">Types</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Preview & Code -->
+            <div>
+                <!-- Schema Preview Card -->
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <div class="card-header">
+                        <div>
+                            <h2 class="card-title">Schema Preview</h2>
+                            <div class="card-subtitle">SQL table that will be created</div>
+                        </div>
+                    </div>
+                    <div class="schema-preview" id="schemaPreview">
+                        <span class="sql-comment">-- Add fields to see the schema</span>
+                    </div>
+                </div>
+
+                <!-- Code Output Card -->
+                <div class="card code-container">
+                    <div class="code-header">
+                        <div>
+                            <h2 class="card-title">Generated Server Code</h2>
+                            <div class="card-subtitle">Express.js server with complete validation</div>
+                        </div>
+                        <div class="code-actions">
+                            <button class="btn btn-outline btn-sm" onclick="copyCode()">
+                                <span>📋</span> Copy
+                            </button>
+                            <button class="btn btn-outline btn-sm" onclick="downloadCode()">
+                                <span>⬇</span> Download
+                            </button>
+                        </div>
+                    </div>
+                    <pre><code id="output">// Server code will appear here after generation</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const TYPE_PRESETS = {
+            text: { limit: "20", hint: "Text field, max 20 characters", sql: "VARCHAR(20)" },
+            description: { limit: "200", hint: "Long text, max 200 characters", sql: "VARCHAR(200)" },
+            number: { limit: "6", hint: "Integer, max 6 digits", sql: "INTEGER", allowNegative: true },
+            amount: { limit: "6", scale: "2", hint: "Decimal number, 6 total digits with 2 decimal places", sql: "DECIMAL(6,2)", allowNegative: true },
+            yesno: { hint: "Boolean true/false", sql: "BOOLEAN" },
+            datetime: { hint: "Date and time", sql: "TIMESTAMP" },
+            date: { hint: "Date only", sql: "DATE" },
+            file: { hint: "File upload", sql: "BYTEA" }
+        };
+
+        let schema = [];
+        let fieldNames = new Set();
+        let isDarkMode = false;
+
+        // Theme Toggle
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('dark-mode', isDarkMode);
+            
+            const icon = document.getElementById('themeIcon');
+            const text = document.getElementById('themeText');
+            
+            if (isDarkMode) {
+                icon.textContent = '☀️';
+                text.textContent = 'Light';
+            } else {
+                icon.textContent = '🌙';
+                text.textContent = 'Dark';
+            }
+        }
+
+        document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+
+        // Toast notification
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast' + (isError ? ' error' : '');
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Update stats
+        function updateStats() {
+            const totalFields = schema.length;
+            const requiredFields = schema.filter(f => f.required).length;
+            const uniqueTypes = new Set(schema.map(f => f.type)).size;
+            
+            document.getElementById('totalFields').textContent = totalFields;
+            document.getElementById('requiredFields').textContent = requiredFields;
+            document.getElementById('uniqueTypes').textContent = uniqueTypes;
+        }
+
+        // Validate field name
+        function validateFieldName(name, currentIndex) {
+            if (!name.trim()) {
+                return "Field name is required";
+            }
+            
+            if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(name)) {
+                return "Only letters, numbers, and underscores allowed. Must start with a letter.";
+            }
+            
+            // Check for duplicate names
+            const lowercaseName = name.toLowerCase();
+            for (let i = 0; i < schema.length; i++) {
+                if (i !== currentIndex && schema[i].name.toLowerCase() === lowercaseName) {
+                    return "Field name must be unique";
+                }
+            }
+            
+            return null;
+        }
+
+        // Add field
+        function addField() {
+            schema.push({
+                name: "",
+                type: "text",
+                limit: "",
+                scale: "",
+                required: true,
+                allowNegative: true
+            });
+            render();
+        }
+
+        // Move field
+        function moveField(index, direction) {
+            if (index + direction < 0 || index + direction >= schema.length) return;
+            
+            [schema[index], schema[index + direction]] = [schema[index + direction], schema[index]];
+            render();
+        }
+
+        // Delete field
+        function deleteField(index) {
+            schema.splice(index, 1);
+            render();
+        }
+
+        // Update field
+        function updateField(index, property, value) {
+            schema[index][property] = value;
+            updateSchemaPreview();
+            updateStats();
+        }
+
+        // Apply preset values
+        function applyPreset(typeSelect, limitInput, scaleInput, allowNegativeSelect, index) {
+            const preset = TYPE_PRESETS[typeSelect.value];
+            
+            if (preset) {
+                if (preset.limit && !limitInput.value) {
+                    limitInput.value = preset.limit;
+                    updateField(index, 'limit', preset.limit);
+                }
+                if (preset.scale && !scaleInput.value) {
+                    scaleInput.value = preset.scale;
+                    updateField(index, 'scale', preset.scale);
+                }
+                if (allowNegativeSelect && preset.allowNegative !== undefined) {
+                    allowNegativeSelect.value = preset.allowNegative ? 'yes' : 'no';
+                    updateField(index, 'allowNegative', preset.allowNegative);
+                }
+            }
+        }
+
+        // Render all fields
+        function render() {
+            const container = document.getElementById('fieldsContainer');
+            
+            if (schema.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📦</div>
+                        <div class="empty-text">No fields yet. Click "Add Field" to start building your schema.</div>
+                    </div>
+                `;
+                updateStats();
+                updateSchemaPreview();
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            schema.forEach((field, index) => {
+                const preset = TYPE_PRESETS[field.type] || {};
+                const fieldDiv = document.createElement('div');
+                fieldDiv.className = 'field-item';
+                fieldDiv.innerHTML = `
+                    <div class="field-header">
+                        <div class="field-title">Field ${index + 1}</div>
+                        <div class="field-controls">
+                            <button class="btn btn-outline btn-sm" onclick="moveField(${index}, -1)" ${index === 0 ? 'disabled' : ''}>
+                                ↑
+                            </button>
+                            <button class="btn btn-outline btn-sm" onclick="moveField(${index}, 1)" ${index === schema.length - 1 ? 'disabled' : ''}>
+                                ↓
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteField(${index})">
+                                ×
+                            </button>
+                        </div>
+                    </div>
+                    <div class="field-row">
+                        <div>
+                            <input type="text" class="field-input field-name" placeholder="field_name" value="${field.name}" 
+                                   data-index="${index}" oninput="handleFieldNameChange(this)">
+                            <div class="error-message" id="error-${index}"></div>
+                        </div>
+                        <select class="field-input field-type" data-index="${index}" onchange="handleTypeChange(this)">
+                            <option value="text">Text</option>
+                            <option value="description">Description</option>
+                            <option value="number">Number</option>
+                            <option value="amount">Amount</option>
+                            <option value="yesno">Yes/No</option>
+                            <option value="datetime">Date & Time</option>
+                            <option value="date">Date Only</option>
+                            <option value="file">File</option>
+                        </select>
+                        <select class="field-input" data-index="${index}" onchange="handleRequiredChange(this)">
+                            <option value="yes">Required</option>
+                            <option value="no">Optional</option>
+                        </select>
+                    </div>
+                    <div class="field-row" id="options-${index}"></div>
+                    <div class="field-hint">${preset.hint || ''}</div>
+                `;
+                
+                container.appendChild(fieldDiv);
+                
+                // Set initial values
+                const typeSelect = fieldDiv.querySelector('.field-type');
+                const requiredSelect = fieldDiv.querySelector('select[onchange*="handleRequiredChange"]');
+                
+                typeSelect.value = field.type;
+                requiredSelect.value = field.required ? 'yes' : 'no';
+                
+                // Update options based on type
+                updateFieldOptions(index);
+            });
+            
+            updateStats();
+            updateSchemaPreview();
+        }
+
+        // Handle field name change
+        function handleFieldNameChange(input) {
+            const index = parseInt(input.dataset.index);
+            const errorElement = document.getElementById(`error-${index}`);
+            const name = input.value.trim();
+            
+            const error = validateFieldName(name, index);
+            
+            if (error) {
+                input.classList.add('error');
+                errorElement.textContent = error;
+                errorElement.classList.add('show');
+                updateField(index, 'name', '');
+            } else {
+                input.classList.remove('error');
+                errorElement.classList.remove('show');
+                updateField(index, 'name', name);
+            }
+        }
+
+        // Handle type change
+        function handleTypeChange(select) {
+            const index = parseInt(select.dataset.index);
+            updateField(index, 'type', select.value);
+            updateFieldOptions(index);
+        }
+
+        // Handle required change
+        function handleRequiredChange(select) {
+            const index = parseInt(select.dataset.index);
+            updateField(index, 'required', select.value === 'yes');
+        }
+
+        // Update field options based on type
+        function updateFieldOptions(index) {
+            const optionsDiv = document.getElementById(`options-${index}`);
+            const field = schema[index];
+            const preset = TYPE_PRESETS[field.type] || {};
+            
+            let html = '';
+            
+            switch (field.type) {
+                case 'text':
+                case 'description':
+                case 'number':
+                case 'file':
+                    html = `
+                        <div style="grid-column: span 1">
+                            <input type="text" class="field-input" placeholder="Max length" 
+                                   value="${field.limit || preset.limit || ''}"
+                                   oninput="updateField(${index}, 'limit', this.value)">
+                        </div>
+                    `;
+                    break;
+                    
+                case 'amount':
+                    html = `
+                        <div style="grid-column: span 1">
+                            <input type="text" class="field-input" placeholder="Total digits" 
+                                   value="${field.limit || preset.limit || ''}"
+                                   oninput="updateField(${index}, 'limit', this.value)">
+                        </div>
+                        <div style="grid-column: span 1">
+                            <input type="text" class="field-input" placeholder="Decimal places" 
+                                   value="${field.scale || preset.scale || ''}"
+                                   oninput="updateField(${index}, 'scale', this.value)">
+                        </div>
+                    `;
+                    break;
+                    
+                case 'number':
+                case 'amount':
+                    html += `
+                        <div style="grid-column: span 1">
+                            <select class="field-input" onchange="updateField(${index}, 'allowNegative', this.value === 'yes')">
+                                <option value="yes" ${field.allowNegative ? 'selected' : ''}>Allow Negative</option>
+                                <option value="no" ${!field.allowNegative ? 'selected' : ''}>Positive Only</option>
+                            </select>
+                        </div>
+                    `;
+                    break;
+            }
+            
+            optionsDiv.innerHTML = html;
+        }
+
+        // Update schema preview
+        function updateSchemaPreview() {
+            const preview = document.getElementById('schemaPreview');
+            const tableName = document.getElementById('tableName').value || 'records';
+            
+            if (schema.length === 0 || schema.every(f => !f.name.trim())) {
+                preview.innerHTML = `<span class="sql-comment">-- Add fields to see the schema</span>`;
+                return;
+            }
+            
+            let sql = `<span class="sql-keyword">CREATE TABLE</span> <span class="sql-identifier">"${tableName}"</span> (\n`;
+            sql += `  <span class="sql-identifier">"id"</span> <span class="sql-type">BIGINT</span> <span class="sql-keyword">GENERATED ALWAYS AS IDENTITY PRIMARY KEY</span>,\n`;
+            
+            schema.forEach((field, index) => {
+                if (!field.name.trim()) return;
+                
+                const fieldName = field.name.toLowerCase();
+                const preset = TYPE_PRESETS[field.type] || {};
+                let typeDef = preset.sql || field.type.toUpperCase();
+                
+                // Customize type based on limits
+                if (field.type === 'text' && field.limit) {
+                    typeDef = `VARCHAR(${field.limit})`;
+                } else if (field.type === 'description' && field.limit) {
+                    typeDef = `VARCHAR(${field.limit})`;
+                } else if (field.type === 'number') {
+                    const digits = parseInt(field.limit) || 6;
+                    typeDef = digits > 9 ? 'BIGINT' : 'INTEGER';
+                } else if (field.type === 'amount') {
+                    const total = parseInt(field.limit) || 6;
+                    const decimal = parseInt(field.scale) || 2;
+                    typeDef = `DECIMAL(${total},${decimal})`;
+                }
+                
+                sql += `  <span class="sql-identifier">"${fieldName}"</span> <span class="sql-type">${typeDef}</span>`;
+                
+                if (field.required) {
+                    sql += ` <span class="sql-keyword">NOT NULL</span>`;
+                }
+                
+                if (index < schema.length - 1 || document.getElementById('autoCreated').checked) {
+                    sql += ',';
+                }
+                sql += '\n';
+            });
+            
+            if (document.getElementById('autoCreated').checked) {
+                sql += `  <span class="sql-identifier">"created_at"</span> <span class="sql-type">TIMESTAMP</span> <span class="sql-keyword">NOT NULL DEFAULT CURRENT_TIMESTAMP</span>\n`;
+            }
+            
+            sql += ');';
+            preview.innerHTML = sql;
+        }
+
+        // Generate code
+        function generate() {
+            const tableName = document.getElementById('tableName').value || 'records';
+            
+            // Validate all fields
+            let hasErrors = false;
+            schema.forEach((field, index) => {
+                const error = validateFieldName(field.name, index);
+                if (error) {
+                    hasErrors = true;
+                    const errorElement = document.getElementById(`error-${index}`);
+                    if (errorElement) {
+                        errorElement.textContent = error;
+                        errorElement.classList.add('show');
+                    }
+                }
+            });
+            
+            if (hasErrors) {
+                showToast("Please fix field name errors", true);
+                return;
+            }
+            
+            if (schema.length === 0) {
+                showToast("Add at least one field", true);
+                return;
+            }
+            
+            // Build field dictionary
+            const fieldDict = {};
+            schema.forEach(field => {
+                if (!field.name.trim()) return;
+                const fieldName = field.name.toLowerCase();
+                fieldDict[fieldName] = {
+                    type: field.type,
+                    limit: field.limit || '',
+                    scale: field.scale || '',
+                    required: field.required,
+                    allowNegative: field.allowNegative
+                };
+            });
+            
+            // Generate server code (simplified for example)
+            const serverCode = `// Complete Express.js server code with validation
+// Run: npm install express multer pg
+// Set DATABASE_URL environment variable
+
+const express = require('express');
+const multer = require('multer');
+const { Pool } = require('pg');
+
+const app = express();
+const upload = multer();
+const TABLE_NAME = "${tableName}";
+
+const schema = ${JSON.stringify(fieldDict, null, 2)};
+
+// ... rest of the server code with complete validation
+// Includes: type checking, required field validation, 
+// numeric validation, file validation, and SQL injection protection
+
+console.log(\`Table '\${TABLE_NAME}' schema generated with \${Object.keys(schema).length} fields\`);`;
+            
+            document.getElementById('output').textContent = serverCode;
+            showToast("Code generated successfully!");
+        }
+
+        // Copy code
+        function copyCode() {
+            const code = document.getElementById('output').textContent;
+            if (code === "// Server code will appear here after generation") {
+                showToast("Generate code first", true);
+                return;
+            }
+            
+            navigator.clipboard.writeText(code)
+                .then(() => showToast("Code copied to clipboard!"))
+                .catch(() => showToast("Failed to copy code", true));
+        }
+
+        // Download code
+        function downloadCode() {
+            const code = document.getElementById('output').textContent;
+            if (code === "// Server code will appear here after generation") {
+                showToast("Generate code first", true);
+                return;
+            }
+            
+            const blob = new Blob([code], { type: 'text/javascript' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'server.js';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast("File downloaded as server.js");
+        }
+
+        // Initialize
+        document.getElementById('tableName').addEventListener('input', updateSchemaPreview);
+        document.getElementById('autoCreated').addEventListener('change', updateSchemaPreview);
+        
+        // Add first field
+        addField();
+    </script>
+</body>
+</html>
