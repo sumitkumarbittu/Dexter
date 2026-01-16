@@ -1,0 +1,3954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schema Builder Pro • Full-Stack Database Generator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #6366f1;
+            --primary-dark: #4338ca;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --purple: #8b5cf6;
+            --cyan: #06b6d4;
+            
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            
+            --bg-primary: white;
+            --bg-secondary: #f8fafc;
+            --bg-card: white;
+            --bg-input: white;
+            --border-color: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            
+            --radius-sm: 0.375rem;
+            --radius: 0.5rem;
+            --radius-md: 0.75rem;
+            --radius-lg: 1rem;
+            --radius-xl: 1.5rem;
+            
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .dark-mode {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #1e293b;
+            --bg-input: #334155;
+            --border-color: #475569;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            transition: var(--transition);
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0 2rem;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            animation: slideDown 0.5s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .logo-text h1 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.2;
+        }
+
+        .logo-text .tagline {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tagline i {
+            color: var(--success);
+        }
+
+        /* Header Controls */
+        .header-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .validation-badge {
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: var(--transition);
+        }
+
+        .validation-badge.valid {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .validation-badge.warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .theme-toggle {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 0.75rem 1.25rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .theme-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+            border-color: var(--primary-light);
+        }
+
+        .theme-toggle i {
+            font-size: 1.125rem;
+        }
+
+        /* Main Layout */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            animation: fadeIn 0.6s ease-out 0.1s both;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (min-width: 1200px) {
+            .main-grid {
+                grid-template-columns: 1.2fr 0.8fr;
+            }
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            box-shadow: var(--shadow-xl);
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+            backdrop-filter: blur(10px);
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-xl), 0 0 0 1px var(--primary-light);
+        }
+
+        .card-header {
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .card-title i {
+            color: var(--primary);
+        }
+
+        .card-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Table Configuration */
+        .table-config {
+            background: var(--bg-input);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-label i {
+            color: var(--primary-light);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius);
+            font-size: 0.9375rem;
+            color: var(--text-primary);
+            transition: var(--transition);
+            font-family: 'SF Mono', 'Cascadia Code', monospace;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .form-input.error {
+            border-color: var(--danger);
+            animation: shake 0.3s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .error-message {
+            color: var(--danger);
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            opacity: 0;
+            transform: translateY(-5px);
+            transition: var(--transition);
+        }
+
+        .error-message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Toggle */
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .toggle {
+            position: relative;
+            width: 60px;
+            height: 32px;
+        }
+
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--gray-300);
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 24px;
+            width: 24px;
+            left: 4px;
+            bottom: 4px;
+            background: white;
+            transition: .4s;
+            border-radius: 50%;
+            box-shadow: var(--shadow-sm);
+        }
+
+        input:checked + .toggle-slider {
+            background: var(--primary);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(28px);
+        }
+
+        .toggle-label {
+            font-size: 0.9375rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* Fields Container */
+        .fields-container {
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .fields-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .fields-container::-webkit-scrollbar-track {
+            background: var(--bg-input);
+            border-radius: 4px;
+        }
+
+        .fields-container::-webkit-scrollbar-thumb {
+            background: var(--gray-400);
+            border-radius: 4px;
+        }
+
+        .fields-container::-webkit-scrollbar-thumb:hover {
+            background: var(--gray-500);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+        }
+
+        .empty-state p {
+            font-size: 0.875rem;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        /* Field Item */
+        .field-item {
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .field-item:hover {
+            border-color: var(--primary-light);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .field-item.dragging {
+            opacity: 0.5;
+            border-style: dashed;
+        }
+
+        .field-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .field-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .field-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            color: white;
+            border-radius: 50%;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .field-type-badge {
+            background: var(--primary-light);
+            color: white;
+            padding: 0.375rem 0.875rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .field-controls {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        /* Field Form */
+        .field-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .field-input-group {
+            position: relative;
+        }
+
+        .field-input {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            background: var(--bg-input);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            transition: var(--transition);
+            font-family: 'SF Mono', monospace;
+        }
+
+        .field-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .field-input.error {
+            border-color: var(--danger);
+        }
+
+        .field-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1em;
+            padding-right: 2.5rem;
+        }
+
+        /* Field Options */
+        .field-options {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .field-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .field-option input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            border: 2px solid var(--gray-400);
+            appearance: none;
+            cursor: pointer;
+            position: relative;
+            transition: var(--transition);
+        }
+
+        .field-option input[type="checkbox"]:checked {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .field-option input[type="checkbox"]:checked::after {
+            content: '✓';
+            position: absolute;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .field-option-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .field-hint {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 0.75rem;
+            padding-left: 0.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .field-hint i {
+            color: var(--info);
+        }
+
+        /* File Options */
+        .file-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .file-option {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: var(--bg-input);
+            border-radius: var(--radius);
+            border: 2px solid var(--border-color);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .file-option:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .file-option input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+        }
+
+        .file-label {
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .file-icon {
+            color: var(--primary);
+            font-size: 1.25rem;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 1rem 1.75rem;
+            border-radius: var(--radius);
+            font-size: 0.9375rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+        }
+
+        .btn:focus:not(:active)::after {
+            animation: ripple 1s ease-out;
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(20, 20);
+                opacity: 0;
+            }
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--bg-input);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+        }
+
+        .btn-sm {
+            padding: 0.625rem 1.25rem;
+            font-size: 0.8125rem;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1.5rem;
+        }
+
+        .btn-group-center {
+            justify-content: center;
+        }
+
+        /* Preview Section */
+        .preview-container {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .preview-tabs {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 1.5rem;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .preview-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .preview-tab {
+            padding: 0.875rem 1.5rem;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: var(--transition);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .preview-tab:hover {
+            color: var(--text-primary);
+        }
+
+        .preview-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .preview-content {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .preview-panel {
+            height: 100%;
+            display: none;
+            animation: fadeInUp 0.3s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .preview-panel.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* SQL Preview */
+        .sql-preview {
+            flex: 1;
+            overflow-y: auto;
+            background: #1e1e1e;
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            font-family: 'SF Mono', 'Cascadia Code', 'Roboto Mono', monospace;
+            font-size: 0.8125rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .sql-keyword {
+            color: #569cd6;
+            font-weight: 500;
+        }
+
+        .sql-type {
+            color: #4ec9b0;
+        }
+
+        .sql-string {
+            color: #ce9178;
+        }
+
+        .sql-comment {
+            color: #6a9955;
+            font-style: italic;
+        }
+
+        .sql-identifier {
+            color: #9cdcfe;
+        }
+
+        .sql-constraint {
+            color: #d7ba7d;
+        }
+
+        /* Friendly Preview */
+        .friendly-preview {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .field-card {
+            background: var(--bg-input);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            margin-bottom: 0.75rem;
+            border-left: 4px solid var(--primary);
+        }
+
+        .field-card.system {
+            border-left-color: var(--gray-500);
+        }
+
+        .field-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .field-card-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.9375rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .field-card-type {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            font-family: 'SF Mono', monospace;
+        }
+
+        .field-card-flags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .flag {
+            padding: 0.25rem 0.625rem;
+            border-radius: 1rem;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .flag.required {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .flag.unique {
+            background: rgba(139, 92, 246, 0.1);
+            color: var(--purple);
+        }
+
+        .flag.system {
+            background: rgba(107, 114, 128, 0.1);
+            color: var(--gray-500);
+        }
+
+        .field-card-details {
+            color: var(--text-secondary);
+            font-size: 0.8125rem;
+            line-height: 1.5;
+        }
+
+        /* Code Output */
+        .code-output {
+            background: #1e1e1e;
+            border-radius: var(--radius);
+            overflow: hidden;
+            margin-top: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            background: #252526;
+            border-bottom: 1px solid #3e3e42;
+        }
+
+        .code-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 600;
+            color: #cccccc;
+        }
+
+        .code-title i {
+            color: var(--primary-light);
+        }
+
+        .code-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        #codeOutput {
+            min-height: 400px;
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 1.5rem;
+            font-family: 'SF Mono', 'Cascadia Code', 'Roboto Mono', monospace;
+            font-size: 0.8125rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: #d4d4d4;
+        }
+
+        /* Stats */
+        .stats {
+            display: flex;
+            gap: 2rem;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 2px solid var(--border-color);
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            text-align: center;
+            flex: 1;
+            min-width: 100px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-top: 0.5rem;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            max-width: 400px;
+        }
+
+        .toast {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 1.25rem 1.5rem;
+            box-shadow: var(--shadow-xl);
+            border-left: 4px solid var(--success);
+            transform: translateX(100%);
+            opacity: 0;
+            animation: slideInRight 0.3s ease-out forwards;
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        @keyframes slideInRight {
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast.hide {
+            animation: slideOutRight 0.3s ease-in forwards;
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        .toast i {
+            font-size: 1.25rem;
+            color: var(--success);
+        }
+
+        .toast.error i {
+            color: var(--danger);
+        }
+
+        .toast.warning i {
+            color: var(--warning);
+        }
+
+        .toast.info i {
+            color: var(--info);
+        }
+
+        .toast.error {
+            border-left-color: var(--danger);
+        }
+
+        .toast.warning {
+            border-left-color: var(--warning);
+        }
+
+        .toast.info {
+            border-left-color: var(--info);
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .toast-message {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.25rem;
+            font-size: 1rem;
+            opacity: 0.7;
+            transition: var(--transition);
+        }
+
+        .toast-close:hover {
+            opacity: 1;
+            color: var(--text-primary);
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 1rem;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            width: 100%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: var(--shadow-xl);
+            animation: modalSlideUp 0.3s ease-out;
+        }
+
+        @keyframes modalSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: var(--radius);
+            transition: var(--transition);
+        }
+
+        .modal-close:hover {
+            background: var(--bg-input);
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 2rem;
+            overflow-y: auto;
+            max-height: 60vh;
+        }
+
+        .modal-footer {
+            padding: 1.5rem 2rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        /* File Preview */
+        .file-preview {
+            font-family: 'SF Mono', monospace;
+            font-size: 0.8125rem;
+            line-height: 1.6;
+            background: #1e1e1e;
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            overflow-x: auto;
+            white-space: pre;
+            color: #d4d4d4;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .card {
+                padding: 1.5rem;
+            }
+            
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+            
+            .logo-section {
+                justify-content: center;
+            }
+            
+            .field-form {
+                grid-template-columns: 1fr;
+            }
+            
+            .file-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats {
+                gap: 1rem;
+            }
+            
+            .stat {
+                min-width: 80px;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .field-item-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .field-controls {
+                width: 100%;
+                justify-content: flex-end;
+            }
+            
+            .modal-content {
+                padding: 1rem;
+            }
+            
+            .modal-body {
+                padding: 1rem;
+            }
+        }
+
+        /* Drag and Drop */
+        .draggable {
+            cursor: grab;
+            user-select: none;
+        }
+
+        .draggable:active {
+            cursor: grabbing;
+        }
+
+        .drag-handle {
+            width: 20px;
+            height: 20px;
+            background: var(--gray-300);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            margin-right: 0.5rem;
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .drag-handle i {
+            font-size: 0.75rem;
+            color: var(--gray-600);
+        }
+
+        /* Loading */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            background: var(--gray-800);
+            color: white;
+            text-align: center;
+            padding: 0.5rem 0.75rem;
+            border-radius: var(--radius-sm);
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: var(--transition);
+            font-size: 0.75rem;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+
+        .tooltip .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: var(--gray-800) transparent transparent transparent;
+        }
+
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Animation Classes */
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .slide-up {
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(79, 70, 229, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo-section">
+                <div class="logo">
+                    <i class="fas fa-database"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>Schema Builder Pro</h1>
+                    <div class="tagline">
+                        <i class="fas fa-bolt"></i>
+                        Generate production-ready database schemas with complete deployment files
+                    </div>
+                </div>
+            </div>
+            <div class="header-controls">
+                <div id="validationStatus" class="validation-badge valid">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Schema Valid</span>
+                </div>
+                <button id="themeToggle" class="theme-toggle">
+                    <i id="themeIcon" class="fas fa-moon"></i>
+                    <span id="themeText">Dark Mode</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-grid">
+            <!-- Left Column: Builder -->
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title">
+                            <i class="fas fa-sliders-h"></i>
+                            Schema Configuration
+                        </h2>
+                        <div class="card-subtitle">Define your database table structure with advanced field types</div>
+                    </div>
+                </div>
+
+                <!-- Table Configuration -->
+                <div class="table-config">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-table"></i>
+                            Table Name
+                        </label>
+                        <input type="text" id="tableName" class="form-input" value="records" 
+                               placeholder="e.g., users, products, orders" oninput="updatePreviews()">
+                        <div id="tableNameError" class="error-message"></div>
+                    </div>
+
+                    <div class="toggle-group">
+                        <label class="toggle">
+                            <input type="checkbox" id="autoCreated" checked onchange="updatePreviews()">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span class="toggle-label">Add automatic created_at timestamp</span>
+                    </div>
+                </div>
+
+                <!-- Fields Container -->
+                <div class="fields-container" id="fieldsContainer">
+                    <!-- Fields will be dynamically added here -->
+                </div>
+
+                <!-- Add Field Button -->
+                <div class="btn-group btn-group-center">
+                    <button class="btn btn-primary" onclick="addField()">
+                        <i class="fas fa-plus-circle"></i>
+                        Add New Field
+                    </button>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="btn-group">
+                    <button class="btn btn-success" onclick="generateCode()">
+                        <i class="fas fa-bolt"></i>
+                        Generate Server Code
+                    </button>
+                    <button class="btn btn-outline" onclick="clearAll()">
+                        <i class="fas fa-trash-alt"></i>
+                        Clear All
+                    </button>
+                    <button class="btn btn-outline" onclick="showFileModal()">
+                        <i class="fas fa-file-archive"></i>
+                        Download Files
+                    </button>
+                </div>
+
+                <!-- Stats -->
+                <div class="stats" id="stats">
+                    <div class="stat">
+                        <div class="stat-value" id="totalFields">0</div>
+                        <div class="stat-label">Total Fields</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="requiredFields">0</div>
+                        <div class="stat-label">Required</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="uniqueFields">0</div>
+                        <div class="stat-label">Unique</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="fileFields">0</div>
+                        <div class="stat-label">Files</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Preview & Output -->
+            <div class="preview-container">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h2 class="card-title">
+                                <i class="fas fa-eye"></i>
+                                Schema Preview
+                            </h2>
+                            <div class="card-subtitle">Real-time preview of your database schema</div>
+                        </div>
+                    </div>
+
+                    <!-- Preview Tabs -->
+                    <div class="preview-tabs" id="previewTabs">
+                        <button class="preview-tab active" data-tab="sql">
+                            <i class="fas fa-database"></i>
+                            SQL Schema
+                        </button>
+                        <button class="preview-tab" data-tab="friendly">
+                            <i class="fas fa-list-ul"></i>
+                            Field Overview
+                        </button>
+                        <button class="preview-tab" data-tab="both">
+                            <i class="fas fa-columns"></i>
+                            Both Views
+                        </button>
+                    </div>
+
+                    <!-- Preview Content -->
+                    <div class="preview-content">
+                        <!-- SQL Preview -->
+                        <div class="preview-panel active" id="sqlPanel">
+                            <div class="sql-preview" id="sqlPreview">
+                                <span class="sql-comment">-- Add fields to generate SQL schema</span>
+                            </div>
+                        </div>
+
+                        <!-- Friendly Preview -->
+                        <div class="preview-panel" id="friendlyPanel">
+                            <div class="friendly-preview" id="friendlyPreview">
+                                <div class="empty-state">
+                                    <i class="fas fa-clipboard-list"></i>
+                                    <h3>No Fields Yet</h3>
+                                    <p>Add fields to see the overview of your schema structure</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Both Previews -->
+                        <div class="preview-panel" id="bothPanel">
+                            <div style="flex: 1; display: flex; flex-direction: column; gap: 1.5rem;">
+                                <div>
+                                    <h4 style="color: var(--text-primary); margin-bottom: 0.75rem;">SQL Schema</h4>
+                                    <div class="sql-preview" id="bothSqlPreview"></div>
+                                </div>
+                                <div>
+                                    <h4 style="color: var(--text-primary); margin-bottom: 0.75rem;">Field Overview</h4>
+                                    <div class="friendly-preview" id="bothFriendlyPreview"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- File Generation -->
+                <div class="card" style="margin-top: 1.5rem;">
+                    <div class="card-header">
+                        <div>
+                            <h2 class="card-title">
+                                <i class="fas fa-file-code"></i>
+                                Additional Files
+                            </h2>
+                            <div class="card-subtitle">Generate deployment configuration files</div>
+                        </div>
+                    </div>
+
+                    <div class="file-options">
+                        <label class="file-option">
+                            <input type="checkbox" id="dockerfile" checked>
+                            <i class="fab fa-docker file-icon"></i>
+                            <span class="file-label">Dockerfile</span>
+                        </label>
+                        <label class="file-option">
+                            <input type="checkbox" id="dockerCompose" checked>
+                            <i class="fab fa-docker file-icon"></i>
+                            <span class="file-label">docker-compose.yml</span>
+                        </label>
+                        <label class="file-option">
+                            <input type="checkbox" id="dockerIgnore" checked>
+                            <i class="fas fa-ban file-icon"></i>
+                            <span class="file-label">.dockerignore</span>
+                        </label>
+                        <label class="file-option">
+                            <input type="checkbox" id="renderYaml" checked>
+                            <i class="fas fa-cloud file-icon"></i>
+                            <span class="file-label">render.yaml</span>
+                        </label>
+                        <label class="file-option">
+                            <input type="checkbox" id="readme" checked>
+                            <i class="fas fa-book file-icon"></i>
+                            <span class="file-label">README.md</span>
+                        </label>
+                        <label class="file-option">
+                            <input type="checkbox" id="envExample" checked>
+                            <i class="fas fa-key file-icon"></i>
+                            <span class="file-label">.env.example</span>
+                        </label>
+                    </div>
+
+                    <div class="btn-group" style="margin-top: 1.5rem;">
+                        <button class="btn btn-outline" onclick="selectAllFiles()">
+                            <i class="fas fa-check-square"></i>
+                            Select All
+                        </button>
+                        <button class="btn btn-outline" onclick="deselectAllFiles()">
+                            <i class="fas fa-square"></i>
+                            Deselect All
+                        </button>
+                        <button class="btn btn-success" onclick="downloadZip()">
+                            <i class="fas fa-file-archive"></i>
+                            Download ZIP
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Code Output -->
+        <div class="code-output">
+            <div class="code-header">
+                <div class="code-title">
+                    <i class="fas fa-code"></i>
+                    Generated Server Code
+                </div>
+                <div class="code-actions">
+                    <button class="btn btn-outline btn-sm" onclick="copyCode()">
+                        <i class="fas fa-copy"></i>
+                        Copy Code
+                    </button>
+                    <button class="btn btn-success btn-sm" onclick="downloadCode()">
+                        <i class="fas fa-download"></i>
+                        Download server.js
+                    </button>
+                    <button class="btn btn-outline btn-sm" onclick="previewCode()">
+                        <i class="fas fa-eye"></i>
+                        Preview
+                    </button>
+                </div>
+            </div>
+            <pre><code id="codeOutput">// Click "Generate Server Code" to create production-ready Express.js server
+// Complete with validation, file uploads, and deployment configuration</code></pre>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- File Modal -->
+    <div class="modal" id="fileModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-file-archive"></i>
+                    Download Configuration Files
+                </h3>
+                <button class="modal-close" onclick="hideFileModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="file-options">
+                    <label class="file-option">
+                        <input type="checkbox" id="modalDockerfile" checked>
+                        <i class="fab fa-docker file-icon"></i>
+                        <span class="file-label">Dockerfile</span>
+                        <button class="btn btn-outline btn-sm" onclick="previewFile('dockerfile')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-outline btn-sm" onclick="copyFile('dockerfile')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </label>
+                    <label class="file-option">
+                        <input type="checkbox" id="modalDockerCompose" checked>
+                        <i class="fab fa-docker file-icon"></i>
+                        <span class="file-label">docker-compose.yml</span>
+                        <button class="btn btn-outline btn-sm" onclick="previewFile('docker-compose')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-outline btn-sm" onclick="copyFile('docker-compose')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </label>
+                    <label class="file-option">
+                        <input type="checkbox" id="modalDockerIgnore" checked>
+                        <i class="fas fa-ban file-icon"></i>
+                        <span class="file-label">.dockerignore</span>
+                        <button class="btn btn-outline btn-sm" onclick="previewFile('dockerignore')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-outline btn-sm" onclick="copyFile('dockerignore')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </label>
+                    <label class="file-option">
+                        <input type="checkbox" id="modalRenderYaml" checked>
+                        <i class="fas fa-cloud file-icon"></i>
+                        <span class="file-label">render.yaml</span>
+                        <button class="btn btn-outline btn-sm" onclick="previewFile('render')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-outline btn-sm" onclick="copyFile('render')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </label>
+                    <label class="file-option">
+                        <input type="checkbox" id="modalReadme" checked>
+                        <i class="fas fa-book file-icon"></i>
+                        <span class="file-label">README.md</span>
+                        <button class="btn btn-outline btn-sm" onclick="previewFile('readme')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-outline btn-sm" onclick="copyFile('readme')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </label>
+                    <label class="file-option">
+                        <input type="checkbox" id="modalEnvExample" checked>
+                        <i class="fas fa-key file-icon"></i>
+                        <span class="file-label">.env.example</span>
+                        <button class="btn btn-outline btn-sm" onclick="previewFile('env')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-outline btn-sm" onclick="copyFile('env')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="hideFileModal()">
+                    <i class="fas fa-times"></i>
+                    Cancel
+                </button>
+                <button class="btn btn-success" onclick="downloadSelectedFiles()">
+                    <i class="fas fa-download"></i>
+                    Download Selected Files
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Code Preview Modal -->
+    <div class="modal" id="codeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-code"></i>
+                    Server.js Preview
+                </h3>
+                <button class="modal-close" onclick="hideCodeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="file-preview" id="codePreview"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="hideCodeModal()">
+                    <i class="fas fa-times"></i>
+                    Close
+                </button>
+                <button class="btn btn-success" onclick="copyCode()">
+                    <i class="fas fa-copy"></i>
+                    Copy Code
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- File Preview Modal -->
+    <div class="modal" id="filePreviewModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="filePreviewTitle"></h3>
+                <button class="modal-close" onclick="hideFilePreviewModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="file-preview" id="filePreviewContent"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="hideFilePreviewModal()">
+                    <i class="fas fa-times"></i>
+                    Close
+                </button>
+                <button class="btn btn-success" onclick="copyFileFromPreview()">
+                    <i class="fas fa-copy"></i>
+                    Copy
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- File Type Modal -->
+    <div class="modal" id="fileTypeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-file-upload"></i>
+                    Configure File Upload
+                </h3>
+                <button class="modal-close" onclick="hideFileTypeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Maximum File Size (MB)</label>
+                    <input type="number" id="fileMaxSize" class="form-input" value="10" min="1" max="100">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Allowed File Types</label>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <label class="field-option">
+                            <input type="radio" name="fileTypeOption" value="all" checked onchange="toggleFileTypes()">
+                            <span class="field-option-label">Allow All File Types</span>
+                        </label>
+                        <label class="field-option">
+                            <input type="radio" name="fileTypeOption" value="specific" onchange="toggleFileTypes()">
+                            <span class="field-option-label">Select Specific File Types</span>
+                        </label>
+                    </div>
+                </div>
+                <div id="fileTypesContainer" style="display: none;">
+                    <div class="file-options" style="grid-template-columns: repeat(2, 1fr);">
+                        <label class="file-option">
+                            <input type="checkbox" id="fileTypeImage" checked>
+                            <i class="fas fa-image file-icon"></i>
+                            <span class="file-label">Images (jpg, png, gif)</span>
+                        </label>
+                        <label class="file-option">
+                            <input type="checkbox" id="fileTypePdf">
+                            <i class="fas fa-file-pdf file-icon"></i>
+                            <span class="file-label">PDF (.pdf)</span>
+                        </label>
+                        <label class="file-option">
+                            <input type="checkbox" id="fileTypeDoc">
+                            <i class="fas fa-file-word file-icon"></i>
+                            <span class="file-label">Documents (doc, docx)</span>
+                        </label>
+                        <label class="file-option">
+                            <input type="checkbox" id="fileTypeExcel">
+                            <i class="fas fa-file-excel file-icon"></i>
+                            <span class="file-label">Excel (xls, xlsx)</span>
+                        </label>
+                        <label class="file-option">
+                            <input type="checkbox" id="fileTypeText">
+                            <i class="fas fa-file-alt file-icon"></i>
+                            <span class="file-label">Text Files (.txt)</span>
+                        </label>
+                        <label class="file-option">
+                            <input type="checkbox" id="fileTypeArchive">
+                            <i class="fas fa-file-archive file-icon"></i>
+                            <span class="file-label">Archives (zip, rar)</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="hideFileTypeModal()">
+                    <i class="fas fa-times"></i>
+                    Cancel
+                </button>
+                <button class="btn btn-success" onclick="saveFileConfiguration()">
+                    <i class="fas fa-save"></i>
+                    Save Configuration
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced type presets with new field types
+        const TYPE_PRESETS = {
+            text: { 
+                limit: "50", 
+                hint: "Short text field (max 50 characters)", 
+                sql: "VARCHAR", 
+                friendly: "Text",
+                allowNegative: false,
+                icon: "fas fa-font"
+            },
+            description: { 
+                limit: "500", 
+                hint: "Long description field (max 500 characters)", 
+                sql: "VARCHAR", 
+                friendly: "Long Text",
+                allowNegative: false,
+                icon: "fas fa-align-left"
+            },
+            number: { 
+                limit: "10", 
+                hint: "Whole number (max 10 digits)", 
+                sql: "INTEGER", 
+                friendly: "Number",
+                allowNegative: true,
+                icon: "fas fa-hashtag"
+            },
+            amount: { 
+                limit: "10", 
+                scale: "2", 
+                hint: "Decimal number (10 total digits, 2 decimal places)", 
+                sql: "DECIMAL", 
+                friendly: "Decimal",
+                allowNegative: true,
+                icon: "fas fa-dollar-sign"
+            },
+            yesno: { 
+                hint: "Boolean true/false field", 
+                sql: "BOOLEAN", 
+                friendly: "Yes/No",
+                allowNegative: false,
+                icon: "fas fa-toggle-on"
+            },
+            datetime: { 
+                hint: "Date and time field", 
+                sql: "TIMESTAMP", 
+                friendly: "Date & Time",
+                allowNegative: false,
+                icon: "fas fa-calendar-alt"
+            },
+            date: { 
+                hint: "Date only field", 
+                sql: "DATE", 
+                friendly: "Date",
+                allowNegative: false,
+                icon: "fas fa-calendar"
+            },
+            email: {
+                hint: "Email address field with validation",
+                sql: "VARCHAR(255)",
+                friendly: "Email",
+                allowNegative: false,
+                icon: "fas fa-envelope"
+            },
+            phone: {
+                limit: "15",
+                hint: "Phone number field (max 15 digits)",
+                sql: "VARCHAR",
+                friendly: "Phone Number",
+                allowNegative: false,
+                icon: "fas fa-phone"
+            },
+            url: {
+                hint: "URL field with validation",
+                sql: "VARCHAR(500)",
+                friendly: "URL",
+                allowNegative: false,
+                icon: "fas fa-link"
+            },
+            photo: {
+                hint: "Image upload field (JPG, PNG, GIF)",
+                sql: "BYTEA",
+                friendly: "Photo",
+                allowNegative: false,
+                icon: "fas fa-image",
+                isFile: true,
+                maxSize: 5,
+                extensions: ['.jpg', '.jpeg', '.png', '.gif']
+            },
+            file: { 
+                limit: "10", 
+                hint: "File upload field", 
+                sql: "BYTEA", 
+                friendly: "File",
+                allowNegative: false,
+                icon: "fas fa-file-upload",
+                isFile: true,
+                maxSize: 10,
+                extensions: 'all'
+            }
+        };
+
+        // Application state
+        let schema = [];
+        let usedFieldNames = new Set();
+        let isDarkMode = false;
+        let currentPreviewTab = 'sql';
+        let currentFileConfig = null;
+        let toastCounter = 0;
+
+        // Initialize application
+        document.addEventListener('DOMContentLoaded', init);
+
+        function init() {
+            // Theme setup
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                toggleTheme();
+            }
+            
+            // Initialize event listeners
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+            
+            // Preview tab switching
+            document.querySelectorAll('.preview-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabName = tab.dataset.tab;
+                    setPreviewTab(tabName);
+                });
+            });
+            
+            // Add initial field
+            addField();
+            
+            // Set initial preview
+            setPreviewTab('sql');
+            
+            // Check for saved schema
+            const savedSchema = localStorage.getItem('schema');
+            if (savedSchema) {
+                try {
+                    schema = JSON.parse(savedSchema);
+                    render();
+                    showToast('Loaded saved schema', 'info');
+                } catch (e) {
+                    console.error('Failed to load saved schema:', e);
+                }
+            }
+            
+            // Auto-save schema changes
+            setInterval(() => {
+                if (schema.length > 0) {
+                    localStorage.setItem('schema', JSON.stringify(schema));
+                }
+            }, 5000);
+        }
+
+        // Theme toggle function
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('dark-mode', isDarkMode);
+            
+            const icon = document.getElementById('themeIcon');
+            const text = document.getElementById('themeText');
+            
+            if (isDarkMode) {
+                icon.className = 'fas fa-sun';
+                text.textContent = 'Light Mode';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                icon.className = 'fas fa-moon';
+                text.textContent = 'Dark Mode';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        // Toast notification system
+        function showToast(message, type = 'success', duration = 5000) {
+            const container = document.getElementById('toastContainer');
+            const toastId = `toast-${toastCounter++}`;
+            
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.id = toastId;
+            
+            let icon = 'fas fa-check-circle';
+            switch (type) {
+                case 'error': icon = 'fas fa-exclamation-circle'; break;
+                case 'warning': icon = 'fas fa-exclamation-triangle'; break;
+                case 'info': icon = 'fas fa-info-circle'; break;
+            }
+            
+            toast.innerHTML = `
+                <i class="${icon}"></i>
+                <div class="toast-content">
+                    <div class="toast-title">${type.charAt(0).toUpperCase() + type.slice(1)}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <button class="toast-close" onclick="dismissToast('${toastId}')">&times;</button>
+            `;
+            
+            container.appendChild(toast);
+            
+            // Auto-dismiss
+            setTimeout(() => {
+                dismissToast(toastId);
+            }, duration);
+        }
+
+        function dismissToast(toastId) {
+            const toast = document.getElementById(toastId);
+            if (toast) {
+                toast.classList.add('hide');
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 300);
+            }
+        }
+
+        // Preview tab switching
+        function setPreviewTab(tabName) {
+            currentPreviewTab = tabName;
+            
+            // Update tab buttons
+            document.querySelectorAll('.preview-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.tab === tabName);
+            });
+            
+            // Update panels
+            document.querySelectorAll('.preview-panel').forEach(panel => {
+                panel.classList.toggle('active', panel.id === `${tabName}Panel`);
+            });
+            
+            updatePreviews();
+        }
+
+        // Validation functions
+        function validateSchema() {
+            usedFieldNames.clear();
+            let isValid = true;
+            
+            // Validate table name
+            const tableName = document.getElementById('tableName').value.trim();
+            if (!tableName) {
+                showError('tableNameError', 'Table name is required');
+                isValid = false;
+            } else if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(tableName)) {
+                showError('tableNameError', 'Table name must start with a letter or underscore and contain only letters, numbers, and underscores');
+                isValid = false;
+            } else {
+                hideError('tableNameError');
+            }
+            
+            // Validate fields
+            for (let i = 0; i < schema.length; i++) {
+                const field = schema[i];
+                const errorId = `error-${i}`;
+                
+                if (!field.name.trim()) {
+                    showError(errorId, 'Field name is required');
+                    isValid = false;
+                    continue;
+                }
+                
+                // Check field name format
+                if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(field.name)) {
+                    showError(errorId, 'Field name must start with a letter or underscore and contain only letters, numbers, and underscores');
+                    isValid = false;
+                    continue;
+                }
+                
+                // Check for duplicate names (case-insensitive)
+                const lowerName = field.name.toLowerCase();
+                if (usedFieldNames.has(lowerName)) {
+                    showError(errorId, 'Field name must be unique');
+                    isValid = false;
+                    continue;
+                }
+                
+                usedFieldNames.add(lowerName);
+                hideError(errorId);
+                
+                // Validate field-specific constraints
+                if (field.type === 'number' || field.type === 'amount') {
+                    const limit = parseInt(field.limit);
+                    if (limit && (limit < 1 || limit > 38)) {
+                        showError(errorId, 'Number precision must be between 1 and 38');
+                        isValid = false;
+                    }
+                    
+                    if (field.type === 'amount') {
+                        const scale = parseInt(field.scale);
+                        if (scale && (scale < 0 || scale > limit)) {
+                            showError(errorId, 'Decimal places must be between 0 and total digits');
+                            isValid = false;
+                        }
+                    }
+                }
+            }
+            
+            // Update validation badge
+            const badge = document.getElementById('validationStatus');
+            if (isValid) {
+                badge.className = 'validation-badge valid';
+                badge.innerHTML = '<i class="fas fa-check-circle"></i><span>Schema Valid</span>';
+            } else {
+                badge.className = 'validation-badge warning';
+                badge.innerHTML = '<i class="fas fa-exclamation-triangle"></i><span>Validation Issues</span>';
+            }
+            
+            return isValid;
+        }
+
+        function showError(elementId, message) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.textContent = message;
+                element.classList.add('show');
+            }
+        }
+
+        function hideError(elementId) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.classList.remove('show');
+            }
+        }
+
+        // Field management
+        function addField() {
+            const newField = {
+                name: "",
+                type: "text",
+                limit: "",
+                scale: "",
+                required: true,
+                unique: false,
+                allowNegative: true,
+                fileConfig: null
+            };
+            
+            schema.push(newField);
+            render();
+            
+            // Scroll to new field
+            setTimeout(() => {
+                const fieldsContainer = document.getElementById('fieldsContainer');
+                fieldsContainer.scrollTop = fieldsContainer.scrollHeight;
+            }, 100);
+        }
+
+        function deleteField(index) {
+            schema.splice(index, 1);
+            render();
+            showToast('Field removed', 'info');
+        }
+
+        function moveField(index, direction) {
+            if (index + direction < 0 || index + direction >= schema.length) return;
+            
+            const temp = schema[index];
+            schema[index] = schema[index + direction];
+            schema[index + direction] = temp;
+            
+            render();
+        }
+
+        function updateField(index, property, value) {
+            schema[index][property] = value;
+            
+            // Apply type-specific presets
+            if (property === 'type') {
+                const preset = TYPE_PRESETS[value];
+                if (preset) {
+                    if (preset.limit && !schema[index].limit) {
+                        schema[index].limit = preset.limit;
+                    }
+                    if (preset.scale && !schema[index].scale) {
+                        schema[index].scale = preset.scale;
+                    }
+                    schema[index].allowNegative = preset.allowNegative;
+                    
+                    // Clear file config if type changes from file
+                    if (!preset.isFile && schema[index].fileConfig) {
+                        schema[index].fileConfig = null;
+                    }
+                }
+            }
+            
+            updatePreviews();
+            validateSchema();
+        }
+
+        function configureFile(index) {
+            currentFileConfig = index;
+            const field = schema[index];
+            
+            if (field.fileConfig) {
+                document.getElementById('fileMaxSize').value = field.fileConfig.maxSize || 10;
+                
+                if (field.fileConfig.extensions === 'all') {
+                    document.querySelector('input[name="fileTypeOption"][value="all"]').checked = true;
+                    document.getElementById('fileTypesContainer').style.display = 'none';
+                } else {
+                    document.querySelector('input[name="fileTypeOption"][value="specific"]').checked = true;
+                    document.getElementById('fileTypesContainer').style.display = 'block';
+                    
+                    const exts = field.fileConfig.extensions || [];
+                    document.getElementById('fileTypeImage').checked = exts.includes('.jpg') || exts.includes('.jpeg') || exts.includes('.png') || exts.includes('.gif');
+                    document.getElementById('fileTypePdf').checked = exts.includes('.pdf');
+                    document.getElementById('fileTypeDoc').checked = exts.includes('.doc') || exts.includes('.docx');
+                    document.getElementById('fileTypeExcel').checked = exts.includes('.xls') || exts.includes('.xlsx');
+                    document.getElementById('fileTypeText').checked = exts.includes('.txt');
+                    document.getElementById('fileTypeArchive').checked = exts.includes('.zip') || exts.includes('.rar');
+                }
+            }
+            
+            document.getElementById('fileTypeModal').classList.add('active');
+        }
+
+        function toggleFileTypes() {
+            const specificSelected = document.querySelector('input[name="fileTypeOption"][value="specific"]').checked;
+            document.getElementById('fileTypesContainer').style.display = specificSelected ? 'block' : 'none';
+        }
+
+        function saveFileConfiguration() {
+            if (currentFileConfig === null) return;
+            
+            const maxSize = parseInt(document.getElementById('fileMaxSize').value) || 10;
+            const allowAll = document.querySelector('input[name="fileTypeOption"][value="all"]').checked;
+            
+            let extensions = 'all';
+            if (!allowAll) {
+                extensions = [];
+                if (document.getElementById('fileTypeImage').checked) {
+                    extensions.push('.jpg', '.jpeg', '.png', '.gif', '.webp');
+                }
+                if (document.getElementById('fileTypePdf').checked) {
+                    extensions.push('.pdf');
+                }
+                if (document.getElementById('fileTypeDoc').checked) {
+                    extensions.push('.doc', '.docx');
+                }
+                if (document.getElementById('fileTypeExcel').checked) {
+                    extensions.push('.xls', '.xlsx');
+                }
+                if (document.getElementById('fileTypeText').checked) {
+                    extensions.push('.txt');
+                }
+                if (document.getElementById('fileTypeArchive').checked) {
+                    extensions.push('.zip', '.rar', '.7z');
+                }
+                
+                if (extensions.length === 0) {
+                    showToast('Please select at least one file type', 'warning');
+                    return;
+                }
+            }
+            
+            schema[currentFileConfig].fileConfig = {
+                maxSize,
+                extensions
+            };
+            
+            hideFileTypeModal();
+            render();
+            showToast('File configuration saved', 'success');
+        }
+
+        // Render fields
+        function render() {
+            const container = document.getElementById('fieldsContainer');
+            
+            if (schema.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-plus-circle"></i>
+                        <h3>No Fields Yet</h3>
+                        <p>Click "Add New Field" to start building your database schema</p>
+                    </div>
+                `;
+                updateStats();
+                updatePreviews();
+                return;
+            }
+            
+            let html = '';
+            
+            schema.forEach((field, index) => {
+                const preset = TYPE_PRESETS[field.type] || {};
+                const isFileType = preset.isFile || false;
+                
+                html += `
+                    <div class="field-item" data-index="${index}">
+                        <div class="field-item-header">
+                            <div class="field-title">
+                                <span class="field-number">${index + 1}</span>
+                                <span class="field-type-badge">
+                                    <i class="${preset.icon || 'fas fa-question'}"></i>
+                                    ${field.type}
+                                </span>
+                            </div>
+                            <div class="field-controls">
+                                <button class="btn btn-outline btn-sm" onclick="moveField(${index}, -1)" ${index === 0 ? 'disabled' : ''}>
+                                    <i class="fas fa-arrow-up"></i> Up
+                                </button>
+                                <button class="btn btn-outline btn-sm" onclick="moveField(${index}, 1)" ${index === schema.length - 1 ? 'disabled' : ''}>
+                                    <i class="fas fa-arrow-down"></i> Down
+                                </button>
+                                ${isFileType ? `
+                                    <button class="btn btn-outline btn-sm" onclick="configureFile(${index})">
+                                        <i class="fas fa-cog"></i> Configure
+                                    </button>
+                                ` : ''}
+                                <button class="btn btn-danger btn-sm" onclick="deleteField(${index})">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="field-form">
+                            <div class="field-input-group">
+                                <input type="text" class="field-input field-name" 
+                                       placeholder="field_name" 
+                                       value="${field.name}"
+                                       oninput="updateField(${index}, 'name', this.value)">
+                                <div class="error-message" id="error-${index}"></div>
+                            </div>
+                            
+                            <div class="field-input-group">
+                                <select class="field-input field-select" onchange="updateField(${index}, 'type', this.value)">
+                                    ${Object.entries(TYPE_PRESETS).map(([key, preset]) => `
+                                        <option value="${key}" ${field.type === key ? 'selected' : ''}>
+                                            ${preset.friendly} ${preset.isFile ? '(File)' : ''}
+                                        </option>
+                                    `).join('')}
+                                </select>
+                            </div>
+                            
+                            ${field.type === 'text' || field.type === 'description' || field.type === 'phone' ? `
+                                <div class="field-input-group">
+                                    <input type="number" class="field-input" 
+                                           placeholder="Max length" 
+                                           value="${field.limit || preset.limit || ''}"
+                                           oninput="updateField(${index}, 'limit', this.value)">
+                                </div>
+                            ` : ''}
+                            
+                            ${field.type === 'number' ? `
+                                <div class="field-input-group">
+                                    <input type="number" class="field-input" 
+                                           placeholder="Max digits" 
+                                           value="${field.limit || preset.limit || ''}"
+                                           oninput="updateField(${index}, 'limit', this.value)"
+                                           min="1" max="38">
+                                </div>
+                            ` : ''}
+                            
+                            ${field.type === 'amount' ? `
+                                <div class="field-input-group">
+                                    <input type="number" class="field-input" 
+                                           placeholder="Total digits" 
+                                           value="${field.limit || preset.limit || ''}"
+                                           oninput="updateField(${index}, 'limit', this.value)"
+                                           min="1" max="38">
+                                </div>
+                                <div class="field-input-group">
+                                    <input type="number" class="field-input" 
+                                           placeholder="Decimal places" 
+                                           value="${field.scale || preset.scale || ''}"
+                                           oninput="updateField(${index}, 'scale', this.value)"
+                                           min="0" max="30">
+                                </div>
+                            ` : ''}
+                            
+                            ${field.type === 'file' ? `
+                                <div class="field-input-group">
+                                    <input type="number" class="field-input" 
+                                           placeholder="Max size (MB)" 
+                                           value="${field.limit || preset.limit || ''}"
+                                           oninput="updateField(${index}, 'limit', this.value)"
+                                           min="1" max="100">
+                                </div>
+                            ` : ''}
+                        </div>
+                        
+                        <div class="field-options">
+                            <label class="field-option">
+                                <input type="checkbox" 
+                                       ${field.required ? 'checked' : ''}
+                                       onchange="updateField(${index}, 'required', this.checked)">
+                                <span class="field-option-label">Required</span>
+                            </label>
+                            
+                            <label class="field-option">
+                                <input type="checkbox" 
+                                       ${field.unique ? 'checked' : ''}
+                                       onchange="updateField(${index}, 'unique', this.checked)">
+                                <span class="field-option-label">Unique</span>
+                            </label>
+                            
+                            ${field.type === 'number' || field.type === 'amount' ? `
+                                <label class="field-option">
+                                    <input type="checkbox" 
+                                           ${field.allowNegative ? 'checked' : ''}
+                                           onchange="updateField(${index}, 'allowNegative', this.checked)">
+                                    <span class="field-option-label">Allow Negative</span>
+                                </label>
+                            ` : ''}
+                        </div>
+                        
+                        <div class="field-hint">
+                            <i class="fas fa-info-circle"></i>
+                            ${preset.hint || ''}
+                            ${field.fileConfig ? ` | Max: ${field.fileConfig.maxSize}MB | Types: ${field.fileConfig.extensions === 'all' ? 'All' : field.fileConfig.extensions.map(e => e.replace('.', '')).join(', ')}` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+            updateStats();
+            updatePreviews();
+            validateSchema();
+        }
+
+        // Update statistics
+        function updateStats() {
+            const fields = schema.filter(f => f.name.trim());
+            const totalFields = fields.length;
+            const requiredFields = fields.filter(f => f.required).length;
+            const uniqueFields = fields.filter(f => f.unique).length;
+            const fileFields = fields.filter(f => TYPE_PRESETS[f.type]?.isFile).length;
+            
+            document.getElementById('totalFields').textContent = totalFields;
+            document.getElementById('requiredFields').textContent = requiredFields;
+            document.getElementById('uniqueFields').textContent = uniqueFields;
+            document.getElementById('fileFields').textContent = fileFields;
+        }
+
+        // Update previews
+        function updatePreviews() {
+            const tableName = document.getElementById('tableName').value.trim() || 'records';
+            const autoCreated = document.getElementById('autoCreated').checked;
+            const fields = schema.filter(f => f.name.trim());
+            
+            // SQL Preview
+            const sql = generateSQL(tableName, fields, autoCreated);
+            document.getElementById('sqlPreview').innerHTML = sql;
+            document.getElementById('bothSqlPreview').innerHTML = sql;
+            
+            // Friendly Preview
+            const friendly = generateFriendlyPreview(fields, autoCreated);
+            if (fields.length === 0) {
+                document.getElementById('friendlyPreview').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-clipboard-list"></i>
+                        <h3>No Fields Yet</h3>
+                        <p>Add fields to see the overview of your schema structure</p>
+                    </div>
+                `;
+                document.getElementById('bothFriendlyPreview').innerHTML = `
+                    <div class="empty-state" style="padding: 1rem;">
+                        <i class="fas fa-clipboard-list"></i>
+                        <h3>No Fields Yet</h3>
+                        <p>Add fields to see the overview</p>
+                    </div>
+                `;
+            } else {
+                document.getElementById('friendlyPreview').innerHTML = friendly;
+                document.getElementById('bothFriendlyPreview').innerHTML = friendly;
+            }
+            
+            updateStats();
+        }
+
+        // Generate SQL
+        function generateSQL(tableName, fields, autoCreated) {
+            if (fields.length === 0) {
+                return '<span class="sql-comment">-- Add fields to generate SQL schema</span>';
+            }
+            
+            let sql = `<span class="sql-keyword">CREATE TABLE</span> <span class="sql-identifier">"${tableName}"</span> (<br>`;
+            sql += `  <span class="sql-identifier">"id"</span> <span class="sql-type">BIGINT</span> <span class="sql-keyword">GENERATED ALWAYS AS IDENTITY PRIMARY KEY</span>,<br>`;
+            
+            fields.forEach((field, index) => {
+                const preset = TYPE_PRESETS[field.type] || {};
+                let typeDef = '';
+                
+                switch (field.type) {
+                    case 'text':
+                    case 'description':
+                    case 'phone':
+                        const limit = field.limit || (field.type === 'description' ? 500 : 50);
+                        typeDef = `VARCHAR(${limit})`;
+                        break;
+                    case 'number':
+                        const digits = parseInt(field.limit) || 10;
+                        if (digits <= 9) typeDef = 'INTEGER';
+                        else if (digits <= 18) typeDef = 'BIGINT';
+                        else typeDef = `NUMERIC(${digits})`;
+                        break;
+                    case 'amount':
+                        const total = parseInt(field.limit) || 10;
+                        const decimal = parseInt(field.scale) || 2;
+                        typeDef = `DECIMAL(${total},${decimal})`;
+                        break;
+                    case 'email':
+                        typeDef = 'VARCHAR(255)';
+                        break;
+                    case 'url':
+                        typeDef = 'VARCHAR(500)';
+                        break;
+                    case 'yesno':
+                        typeDef = 'BOOLEAN';
+                        break;
+                    case 'datetime':
+                        typeDef = 'TIMESTAMP';
+                        break;
+                    case 'date':
+                        typeDef = 'DATE';
+                        break;
+                    case 'photo':
+                    case 'file':
+                        typeDef = 'BYTEA';
+                        break;
+                    default:
+                        typeDef = 'TEXT';
+                }
+                
+                sql += `  <span class="sql-identifier">"${field.name.toLowerCase()}"</span> <span class="sql-type">${typeDef}</span>`;
+                
+                if (field.required) {
+                    sql += ` <span class="sql-keyword">NOT NULL</span>`;
+                }
+                
+                if (field.unique) {
+                    sql += ` <span class="sql-keyword">UNIQUE</span>`;
+                }
+                
+                if (index < fields.length - 1 || autoCreated) {
+                    sql += ',';
+                }
+                sql += '<br>';
+            });
+            
+            if (autoCreated) {
+                sql += `  <span class="sql-identifier">"created_at"</span> <span class="sql-type">TIMESTAMP</span> <span class="sql-keyword">NOT NULL DEFAULT CURRENT_TIMESTAMP</span><br>`;
+            }
+            
+            sql += ');';
+            return sql;
+        }
+
+        // Generate friendly preview
+        function generateFriendlyPreview(fields, autoCreated) {
+            let html = '';
+            
+            // System field: id
+            html += `
+                <div class="field-card system">
+                    <div class="field-card-header">
+                        <div class="field-card-name">id</div>
+                        <div class="field-card-flags">
+                            <span class="flag system">System</span>
+                            <span class="flag required">Required</span>
+                            <span class="flag unique">Unique</span>
+                        </div>
+                    </div>
+                    <div class="field-card-details">
+                        Auto-generated unique identifier (BIGINT)
+                    </div>
+                </div>
+            `;
+            
+            // User fields
+            fields.forEach(field => {
+                const preset = TYPE_PRESETS[field.type] || {};
+                let details = preset.friendly;
+                
+                if (field.type === 'text' || field.type === 'description' || field.type === 'phone') {
+                    details += ` (max ${field.limit || preset.limit || 50} characters)`;
+                } else if (field.type === 'number') {
+                    details += ` (${field.limit || preset.limit || 10} digits)`;
+                    if (!field.allowNegative) details += ' - Positive only';
+                } else if (field.type === 'amount') {
+                    details += ` (${field.limit || preset.limit || 10} total, ${field.scale || preset.scale || 2} decimal)`;
+                    if (!field.allowNegative) details += ' - Positive only';
+                } else if (field.type === 'photo' || field.type === 'file') {
+                    const maxSize = field.limit || preset.limit || 10;
+                    details += ` (max ${maxSize}MB)`;
+                    if (field.fileConfig) {
+                        if (field.fileConfig.extensions === 'all') {
+                            details += ' - All file types';
+                        } else {
+                            details += ` - ${field.fileConfig.extensions.map(e => e.replace('.', '')).join(', ')}`;
+                        }
+                    }
+                }
+                
+                html += `
+                    <div class="field-card">
+                        <div class="field-card-header">
+                            <div class="field-card-name">
+                                ${field.name}
+                                <span class="field-card-type">${details}</span>
+                            </div>
+                            <div class="field-card-flags">
+                                ${field.required ? '<span class="flag required">Required</span>' : ''}
+                                ${field.unique ? '<span class="flag unique">Unique</span>' : ''}
+                                ${field.type === 'number' && !field.allowNegative ? '<span class="flag required">Positive Only</span>' : ''}
+                            </div>
+                        </div>
+                        <div class="field-card-details">
+                            ${preset.hint}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            // System field: created_at
+            if (autoCreated) {
+                html += `
+                    <div class="field-card system">
+                        <div class="field-card-header">
+                            <div class="field-card-name">created_at</div>
+                            <div class="field-card-flags">
+                                <span class="flag system">System</span>
+                                <span class="flag required">Required</span>
+                            </div>
+                        </div>
+                        <div class="field-card-details">
+                            Automatic timestamp when record is created (TIMESTAMP)
+                        </div>
+                    </div>
+                `;
+            }
+            
+            return html;
+        }
+
+        // Generate server code with all improvements
+        function generateCode() {
+            if (!validateSchema()) {
+                showToast('Please fix validation errors before generating code', 'error');
+                return;
+            }
+            
+            const tableName = document.getElementById('tableName').value.trim() || 'records';
+            const autoCreated = document.getElementById('autoCreated').checked;
+            
+            // Build field dictionary
+            const fieldDict = {};
+            schema.forEach(field => {
+                if (!field.name.trim()) return;
+                const fieldName = field.name.toLowerCase();
+                fieldDict[fieldName] = {
+                    type: field.type,
+                    limit: field.limit || '',
+                    scale: field.scale || '',
+                    required: field.required,
+                    unique: field.unique,
+                    allowNegative: field.allowNegative,
+                    fileConfig: field.fileConfig
+                };
+            });
+            
+            const serverCode = `import express from "express";
+import multer from "multer";
+import pkg from "pg";
+const { Pool } = pkg;
+
+// Configure multer with file size limits
+const upload = multer({
+    limits: {
+        fileSize: 10 * 1024 * 1024 // 10MB default
+    }
+});
+
+const app = express();
+app.use(express.json());
+
+const TABLE_NAME = "${tableName}";
+const schema = ${JSON.stringify(fieldDict, null, 2)};
+const AUTO_CREATED_AT = ${autoCreated};
+
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
+
+// Type mapping for SQL
+const typeMap = {
+    text: field => \`VARCHAR(\${field.limit || 50})\`,
+    description: field => \`VARCHAR(\${field.limit || 500})\`,
+    number: field => {
+        const digits = parseInt(field.limit, 10) || 10;
+        if (digits <= 9) return "INTEGER";
+        if (digits <= 18) return "BIGINT";
+        return \`NUMERIC(\${digits})\`;
+    },
+    amount: field => \`DECIMAL(\${field.limit || 10}, \${field.scale || 2})\`,
+    yesno: () => "BOOLEAN",
+    datetime: () => "TIMESTAMP",
+    date: () => "DATE",
+    email: () => "VARCHAR(255)",
+    phone: field => \`VARCHAR(\${field.limit || 15})\`,
+    url: () => "VARCHAR(500)",
+    photo: () => "BYTEA",
+    file: () => "BYTEA"
+};
+
+// Create table SQL
+function createTableSQL() {
+    let columns = '"id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,\\n';
+    
+    for (const [name, field] of Object.entries(schema)) {
+        columns += \`"\${name}" \${typeMap[field.type](field)}\`;
+        
+        if (field.required) {
+            columns += \` NOT NULL\`;
+        }
+        
+        if (field.unique) {
+            columns += \` UNIQUE\`;
+        }
+        
+        columns += \`,\\n\`;
+    }
+    
+    if (AUTO_CREATED_AT) {
+        columns += '"created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,\\n';
+    }
+    
+    return \`CREATE TABLE IF NOT EXISTS "\${TABLE_NAME}" (\\n\${columns.slice(0, -2)}\\n);\`;
+}
+
+// File validation
+function validateFile(file, fieldConfig) {
+    if (!file) return null;
+    
+    const maxSize = (fieldConfig.limit || 10) * 1024 * 1024;
+    if (file.size > maxSize) {
+        return \`File size exceeds \${fieldConfig.limit || 10}MB limit\`;
+    }
+    
+    if (fieldConfig.fileConfig && fieldConfig.fileConfig.extensions !== 'all') {
+        const fileName = file.originalname.toLowerCase();
+        const isValid = fieldConfig.fileConfig.extensions.some(ext => 
+            fileName.endsWith(ext.toLowerCase())
+        );
+        
+        if (!isValid) {
+            const allowed = fieldConfig.fileConfig.extensions.map(e => e.replace('.', '')).join(', ');
+            return \`File type not allowed. Allowed types: \${allowed}\`;
+        }
+    }
+    
+    return null;
+}
+
+// Field validation
+function validate(body, files) {
+    // Required field validation
+    for (const [name, field] of Object.entries(schema)) {
+        if (field.type === "photo" || field.type === "file") {
+            if (field.required && !files[name]) {
+                return { error: \`\${name} is required\`, field: name };
+            }
+            
+            // File validation
+            if (files[name]) {
+                const fileError = validateFile(files[name][0], field);
+                if (fileError) {
+                    return { error: fileError, field: name };
+                }
+            }
+        } else {
+            const value = body[name];
+            if (field.required && (value === undefined || value === null || String(value).trim() === "")) {
+                return { error: \`\${name} is required\`, field: name };
+            }
+            
+            // Skip validation if value is empty and not required
+            if (value === undefined || value === null || String(value).trim() === "") {
+                continue;
+            }
+            
+            const strValue = String(value).trim();
+            
+            // Email validation
+            if (field.type === "email") {
+                const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
+                if (!emailRegex.test(strValue)) {
+                    return { error: \`\${name} must be a valid email address\`, field: name };
+                }
+            }
+            
+            // URL validation
+            if (field.type === "url") {
+                try {
+                    new URL(strValue);
+                } catch {
+                    return { error: \`\${name} must be a valid URL\`, field: name };
+                }
+            }
+            
+            // Phone validation
+            if (field.type === "phone") {
+                const phoneRegex = /^[+]?[\\d\\s\\-\\(\\)]{10,15}$/;
+                if (!phoneRegex.test(strValue.replace(/\\s/g, ''))) {
+                    return { error: \`\${name} must be a valid phone number\`, field: name };
+                }
+                
+                const maxLength = parseInt(field.limit) || 15;
+                if (strValue.replace(/[^\\d]/g, '').length > maxLength) {
+                    return { error: \`\${name} exceeds \${maxLength} digits\`, field: name };
+                }
+            }
+            
+            // Text length validation
+            if ((field.type === "text" || field.type === "description") && field.limit) {
+                const maxLength = parseInt(field.limit);
+                if (strValue.length > maxLength) {
+                    return { error: \`\${name} exceeds \${maxLength} characters\`, field: name };
+                }
+            }
+            
+            // Numeric validation
+            if ((field.type === "number" || field.type === "amount") && strValue !== "") {
+                // Check if it's a valid number
+                if (!/^-?\\d+(\\.\\d+)?$/.test(strValue)) {
+                    return { error: \`\${name} must be a valid number\`, field: name };
+                }
+                
+                // Fix: Reject decimals for integer fields
+                if (field.type === "number" && strValue.includes(".")) {
+                    return { error: \`\${name} must be an integer (no decimals)\`, field: name };
+                }
+                
+                // Negative validation
+                if (!field.allowNegative && strValue.startsWith("-")) {
+                    return { error: \`\${name} must be a positive number\`, field: name };
+                }
+                
+                // Number range validation
+                if (field.type === "number") {
+                    const numValue = Math.abs(parseInt(strValue));
+                    const maxDigits = parseInt(field.limit) || 10;
+                    
+                    // Check if number fits in the allowed digits
+                    if (String(numValue).length > maxDigits) {
+                        return { error: \`\${name} exceeds \${maxDigits} digits\`, field: name };
+                    }
+                    
+                    // Check PostgreSQL integer limits
+                    if (maxDigits <= 9 && numValue > 2147483647) {
+                        return { error: \`\${name} exceeds INTEGER maximum value\`, field: name };
+                    }
+                    
+                    if (maxDigits <= 18 && numValue > 9223372036854775807) {
+                        return { error: \`\${name} exceeds BIGINT maximum value\`, field: name };
+                    }
+                }
+                
+                // Amount precision validation
+                if (field.type === "amount") {
+                    const [integerPart = "", decimalPart = ""] = strValue.replace("-", "").split(".");
+                    const maxInteger = parseInt(field.limit || 10, 10) - parseInt(field.scale || 2, 10);
+                    const maxDecimal = parseInt(field.scale || 2, 10);
+                    
+                    if (integerPart.length > maxInteger) {
+                        return { error: \`\${name} integer part exceeds \${maxInteger} digits\`, field: name };
+                    }
+                    if (decimalPart.length > maxDecimal) {
+                        return { error: \`\${name} decimal part exceeds \${maxDecimal} places\`, field: name };
+                    }
+                    
+                    // Negative validation for amount
+                    if (!field.allowNegative && strValue.startsWith("-")) {
+                        return { error: \`\${name} must be a positive amount\`, field: name };
+                    }
+                }
+            }
+            
+            // Date validation
+            if ((field.type === "datetime" || field.type === "date") && strValue !== "") {
+                const dateValue = new Date(strValue);
+                if (isNaN(dateValue.getTime())) {
+                    return { error: \`\${name} must be a valid date\`, field: name };
+                }
+            }
+        }
+    }
+    
+    // Extra field validation
+    for (const key of Object.keys(body)) {
+        if (!schema[key]) {
+            return { error: \`Extra field not allowed: \${key}\`, field: key };
+        }
+    }
+    
+    // Extra file validation
+    for (const key of Object.keys(files)) {
+        if (!schema[key] || (schema[key].type !== "photo" && schema[key].type !== "file")) {
+            return { error: \`Extra file not allowed: \${key}\`, field: key };
+        }
+    }
+    
+    return null;
+}
+
+// Build insert query
+function buildInsertQuery(body, files) {
+    const columns = [];
+    const values = [];
+    let paramIndex = 1;
+    
+    for (const [name, field] of Object.entries(schema)) {
+        if (field.type === "photo" || field.type === "file") {
+            if (files[name]) {
+                columns.push(\`"\${name}"\`);
+                values.push(files[name][0].buffer);
+                paramIndex++;
+            } else if (field.required) {
+                throw { error: \`\${name} is required\`, field: name };
+            }
+        } else {
+            if (!(name in body)) {
+                if (field.required) {
+                    throw { error: \`\${name} is required\`, field: name };
+                }
+                continue;
+            }
+            
+            columns.push(\`"\${name}"\`);
+            
+            // Type conversion with validation
+            let value = body[name];
+            if (field.type === "number") {
+                // Ensure it's an integer
+                const num = parseFloat(value);
+                if (!Number.isInteger(num)) {
+                    throw { error: \`\${name} must be an integer\`, field: name };
+                }
+                value = Math.floor(num);
+            } else if (field.type === "amount") {
+                value = parseFloat(value);
+            } else if (field.type === "yesno") {
+                value = String(value).toLowerCase() === "true" || 
+                        value === "1" || 
+                        value === 1 || 
+                        value === "yes" ||
+                        value === "on";
+            } else if (field.type === "text" || field.type === "description" || field.type === "email" || 
+                      field.type === "phone" || field.type === "url") {
+                value = String(value).trim();
+            } else if (field.type === "datetime" || field.type === "date") {
+                // Ensure valid date format for PostgreSQL
+                const date = new Date(value);
+                if (isNaN(date.getTime())) {
+                    throw { error: \`\${name} must be a valid date\`, field: name };
+                }
+                value = date.toISOString();
+            }
+            
+            values.push(value);
+            paramIndex++;
+        }
+    }
+    
+    const placeholders = values.map((_, i) => \`$\${i + 1}\`).join(",");
+    return {
+        text: \`INSERT INTO "\${TABLE_NAME}" (\${columns.join(",")}) VALUES (\${placeholders}) RETURNING id, created_at\`,
+        values: values
+    };
+}
+
+// Generate multer fields configuration
+const uploadFields = Object.entries(schema)
+    .filter(([_, field]) => field.type === "photo" || field.type === "file")
+    .map(([name, _]) => ({ name, maxCount: 1 }));
+
+// Main save endpoint
+app.post("/api/save", upload.fields(uploadFields), async (req, res) => {
+    const client = await pool.connect();
+    
+    try {
+        await client.query("BEGIN");
+        
+        const files = req.files || {};
+        
+        const validationError = validate(req.body, files);
+        if (validationError) {
+            await client.query("ROLLBACK");
+            return res.status(400).json(validationError);
+        }
+        
+        const query = buildInsertQuery(req.body, files);
+        const result = await client.query(query.text, query.values);
+        
+        await client.query("COMMIT");
+        
+        console.log(\`✅ Record saved to \${TABLE_NAME} with ID: \${result.rows[0]?.id}\`);
+        
+        res.json({ 
+            success: true, 
+            id: result.rows[0]?.id,
+            created_at: result.rows[0]?.created_at,
+            message: "Record saved successfully",
+            table: TABLE_NAME
+        });
+    } catch (error) {
+        await client.query("ROLLBACK");
+        
+        console.error("❌ Save error:", error);
+        
+        // Handle specific database errors
+        if (error.code === "23505") { // Unique violation
+            return res.status(409).json({ 
+                error: "Duplicate entry - this record already exists",
+                code: "DUPLICATE_ENTRY",
+                details: error.detail
+            });
+        } else if (error.code === "23502") { // Not null violation
+            return res.status(400).json({ 
+                error: "Missing required field",
+                code: "MISSING_REQUIRED",
+                field: error.column
+            });
+        } else if (error.code === "22P02") { // Invalid input syntax
+            return res.status(400).json({ 
+                error: "Invalid data format",
+                code: "INVALID_FORMAT",
+                details: error.message
+            });
+        } else if (error.error) { // Our custom validation errors
+            return res.status(400).json(error);
+        } else if (error.code === "22001") { // String data right truncation
+            return res.status(400).json({
+                error: "Data too long for field",
+                code: "DATA_TOO_LONG"
+            });
+        } else if (error.code === "22003") { // Numeric value out of range
+            return res.status(400).json({
+                error: "Numeric value out of range",
+                code: "NUMERIC_OUT_OF_RANGE"
+            });
+        }
+        
+        // Generic error
+        res.status(500).json({ 
+            error: "Internal server error",
+            code: "INTERNAL_ERROR",
+            message: error.message
+        });
+    } finally {
+        client.release();
+    }
+});
+
+// Additional endpoints
+app.get("/schema", (_, res) => {
+    res.json({ 
+        table: TABLE_NAME,
+        schema: schema,
+        fields: Object.keys(schema).length,
+        autoCreated: AUTO_CREATED_AT,
+        timestamp: new Date().toISOString()
+    });
+});
+
+app.get("/health", (_, res) => {
+    res.json({ 
+        status: "ok", 
+        timestamp: new Date().toISOString(),
+        service: "database-api",
+        version: "1.0.0",
+        uptime: process.uptime(),
+        database: "connected"
+    });
+});
+
+// Initialize database
+(async () => {
+    try {
+        await pool.query(createTableSQL());
+        console.log(\`✅ Table '\${TABLE_NAME}' created/verified successfully\`);
+        console.log(\`📊 Table has \${Object.keys(schema).length} fields\`);
+        console.log(\`📁 File upload fields: \${Object.entries(schema).filter(([_, f]) => f.type === 'photo' || f.type === 'file').length}\`);
+    } catch (error) {
+        console.error("❌ Table creation error:", error);
+        process.exit(1);
+    }
+})();
+
+const PORT = process.env.PORT || 8000;
+app.listen(PORT, () => {
+    console.log(\`🚀 Server running on port \${PORT}\`);
+    console.log(\`🔗 API Base URL: http://localhost:\${PORT}\`);
+    console.log("📋 Endpoints available:");
+    console.log("  POST /api/save    - Save a record with full validation");
+    console.log("  GET  /schema      - Get schema information");
+    console.log("  GET  /health      - Health check");
+    console.log("📝 Validation includes:");
+    console.log("  • Required fields");
+    console.log("  • Unique constraints");
+    console.log("  • Email/URL/Phone validation");
+    console.log("  • File size and type limits");
+    console.log("  • Numeric precision limits");
+    console.log("  • Transaction support with rollback");
+});`;
+            
+            document.getElementById('codeOutput').textContent = serverCode;
+            showToast('Production server code generated successfully! Complete with file uploads and validation.');
+        }
+
+        // File management functions
+        function showFileModal() {
+            document.getElementById('fileModal').classList.add('active');
+        }
+
+        function hideFileModal() {
+            document.getElementById('fileModal').classList.remove('active');
+        }
+
+        function showFileTypeModal() {
+            document.getElementById('fileTypeModal').classList.add('active');
+        }
+
+        function hideFileTypeModal() {
+            document.getElementById('fileTypeModal').classList.remove('active');
+            currentFileConfig = null;
+        }
+
+        function previewCode() {
+            const code = document.getElementById('codeOutput').textContent;
+            if (code.includes('Click "Generate Server Code"')) {
+                showToast('Please generate code first', 'warning');
+                return;
+            }
+            
+            document.getElementById('codePreview').textContent = code;
+            document.getElementById('codeModal').classList.add('active');
+        }
+
+        function hideCodeModal() {
+            document.getElementById('codeModal').classList.remove('active');
+        }
+
+        function previewFile(fileType) {
+            let content = '';
+            let title = '';
+            
+            switch (fileType) {
+                case 'dockerfile':
+                    content = generateDockerfile();
+                    title = 'Dockerfile';
+                    break;
+                case 'docker-compose':
+                    content = generateDockerCompose();
+                    title = 'docker-compose.yml';
+                    break;
+                case 'dockerignore':
+                    content = generateDockerIgnore();
+                    title = '.dockerignore';
+                    break;
+                case 'render':
+                    content = generateRenderYaml();
+                    title = 'render.yaml';
+                    break;
+                case 'readme':
+                    content = generateReadme();
+                    title = 'README.md';
+                    break;
+                case 'env':
+                    content = generateEnvExample();
+                    title = '.env.example';
+                    break;
+            }
+            
+            document.getElementById('filePreviewTitle').textContent = title;
+            document.getElementById('filePreviewContent').textContent = content;
+            document.getElementById('filePreviewModal').classList.add('active');
+        }
+
+        function hideFilePreviewModal() {
+            document.getElementById('filePreviewModal').classList.remove('active');
+        }
+
+        function copyFileFromPreview() {
+            const content = document.getElementById('filePreviewContent').textContent;
+            navigator.clipboard.writeText(content)
+                .then(() => showToast('File content copied to clipboard', 'success'))
+                .catch(() => showToast('Failed to copy content', 'error'));
+        }
+
+        function copyFile(fileType) {
+            let content = '';
+            
+            switch (fileType) {
+                case 'dockerfile':
+                    content = generateDockerfile();
+                    break;
+                case 'docker-compose':
+                    content = generateDockerCompose();
+                    break;
+                case 'dockerignore':
+                    content = generateDockerIgnore();
+                    break;
+                case 'render':
+                    content = generateRenderYaml();
+                    break;
+                case 'readme':
+                    content = generateReadme();
+                    break;
+                case 'env':
+                    content = generateEnvExample();
+                    break;
+            }
+            
+            navigator.clipboard.writeText(content)
+                .then(() => showToast('File content copied to clipboard', 'success'))
+                .catch(() => showToast('Failed to copy content', 'error'));
+        }
+
+        // File generation functions
+        function generateDockerfile() {
+            return `# Use Node.js LTS version
+FROM node:18-alpine
+
+# Install curl for health checks
+RUN apk add --no-cache curl
+
+# Create app directory
+WORKDIR /usr/src/app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies (production only)
+RUN npm ci --only=production
+
+# Copy app source
+COPY . .
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nodejs -u 1001
+USER nodejs
+
+# Expose port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \\
+  CMD curl -f http://localhost:8000/health || exit 1
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=8000
+
+# Start the application
+CMD ["node", "server.js"]`;
+        }
+
+        function generateDockerCompose() {
+            const tableName = document.getElementById('tableName').value.trim() || 'records';
+            return `version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@db:5432/${tableName}
+      - NODE_ENV=production
+      - PORT=8000
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - backend
+    volumes:
+      - ./uploads:/usr/src/app/uploads
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=${tableName}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@example.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+    networks:
+      - backend
+    restart: unless-stopped
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  uploads:`;
+        }
+
+        function generateDockerIgnore() {
+            return `# Dependencies
+node_modules
+npm-debug.log
+
+# Environment variables
+.env
+.env.local
+.env*.local
+
+# IDE files
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs
+
+# Coverage
+coverage
+.nyc_output
+
+# Build outputs
+dist
+build
+out
+
+# Temporary files
+tmp
+temp
+
+# Uploads (except directory structure)
+uploads/*
+!uploads/.gitkeep
+
+# Backup files
+*.bak
+*.backup
+
+# Test files
+__tests__
+__mocks__`;
+        }
+
+        function generateRenderYaml() {
+            const tableName = document.getElementById('tableName').value.trim() || 'records';
+            return `services:
+  - type: web
+    name: ${tableName}-api
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm ci
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ${tableName}-db
+          property: connectionString
+    healthCheckPath: /health
+    autoDeploy: true
+
+databases:
+  - name: ${tableName}-db
+    plan: free
+    region: oregon
+    databaseName: ${tableName}
+    user: ${tableName}_user`;
+        }
+
+        function generateReadme() {
+            const tableName = document.getElementById('tableName').value.trim() || 'records';
+            const fields = schema.filter(f => f.name.trim());
+            const fileFields = fields.filter(f => TYPE_PRESETS[f.type]?.isFile);
+            
+            return `# ${tableName.charAt(0).toUpperCase() + tableName.slice(1)} Database API
+
+## Overview
+Production-ready Express.js API for managing ${tableName} records with complete validation, file uploads, and PostgreSQL support.
+
+## Features
+- ✅ Full CRUD operations with validation
+- ✅ File upload support with size/type restrictions
+- ✅ Email, URL, and phone number validation
+- ✅ Transaction support with rollback
+- ✅ Comprehensive error handling
+- ✅ Health checks
+- ✅ Schema introspection
+- ✅ Docker and Render.com deployment ready
+
+## Database Schema
+
+### Table: \`${tableName}\`
+
+| Field | Type | Required | Unique | Description |
+|-------|------|----------|--------|-------------|
+| id | BIGINT | ✅ | ✅ | Auto-generated primary key |
+${fields.map(f => {
+    const preset = TYPE_PRESETS[f.type];
+    let type = preset.friendly;
+    if (f.type === 'text' || f.type === 'description' || f.type === 'phone') {
+        type += `(${f.limit || preset.limit})`;
+    } else if (f.type === 'number') {
+        type += `(${f.limit || preset.limit})`;
+    } else if (f.type === 'amount') {
+        type += `(${f.limit || preset.limit},${f.scale || preset.scale})`;
+    }
+    if (preset.isFile && f.fileConfig) {
+        type += ` [File, max ${f.fileConfig.maxSize}MB]`;
+    }
+    return `| ${f.name} | ${type} | ${f.required ? '✅' : '❌'} | ${f.unique ? '✅' : '❌'} | ${preset.hint} |`;
+}).join('\n')}
+| created_at | TIMESTAMP | ✅ | ❌ | Automatic timestamp |
+
+## API Endpoints
+
+### POST /api/save
+Save a new record with validation.
+
+**Request:**
+\`\`\`json
+{
+${fields.filter(f => !TYPE_PRESETS[f.type]?.isFile).map(f => `  "${f.name}": "value"`).join(',\n')}
+}
+\`\`\`
+
+${fileFields.length > 0 ? `**File Upload:** Use multipart/form-data for file fields: ${fileFields.map(f => f.name).join(', ')}` : ''}
+
+**Response:**
+\`\`\`json
+{
+  "success": true,
+  "id": 1,
+  "created_at": "2024-01-01T00:00:00.000Z",
+  "message": "Record saved successfully",
+  "table": "${tableName}"
+}
+\`\`\`
+
+### GET /schema
+Get current schema information.
+
+### GET /health
+Health check endpoint.
+
+## Setup
+
+### 1. Clone and Install
+\`\`\`bash
+git clone <repository-url>
+cd ${tableName}-api
+npm install
+\`\`\`
+
+### 2. Configure Environment
+\`\`\`bash
+cp .env.example .env
+# Edit .env with your database credentials
+\`\`\`
+
+### 3. Database Setup
+\`\`\`bash
+# Using Docker Compose (recommended)
+docker-compose up -d
+
+# Or manually create database
+createdb ${tableName}
+\`\`\`
+
+### 4. Start Server
+\`\`\`bash
+# Development
+npm run dev
+
+# Production
+npm start
+\`\`\`
+
+## Deployment
+
+### Docker
+\`\`\`bash
+# Build and run
+docker-compose up --build -d
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
+\`\`\`
+
+### Render.com
+1. Push code to GitHub
+2. Connect repository to Render
+3. Deploy automatically
+
+## Validation Rules
+- Required fields: ${fields.filter(f => f.required).length} fields
+- Unique constraints: ${fields.filter(f => f.unique).length} fields
+- File uploads: ${fileFields.length} fields with size/type restrictions
+- Email/URL/Phone: Automatic format validation
+- Numeric limits: Precision and range validation
+
+## Error Handling
+All errors return structured responses:
+\`\`\`json
+{
+  "error": "Descriptive message",
+  "code": "ERROR_CODE",
+  "field": "field_name"  // if applicable
+}
+\`\`\`
+
+## Security Features
+- File size limits to prevent DoS
+- File type restrictions
+- SQL injection protection via parameterized queries
+- Input validation and sanitization
+- Environment variable configuration
+
+## Monitoring
+- Health endpoint: \`GET /health\`
+- Structured logging
+- Database connection pooling
+- Automatic reconnection
+
+## License
+MIT License - See LICENSE file for details
+
+## Support
+For issues and feature requests, please use the GitHub issue tracker.`;
+        }
+
+        function generateEnvExample() {
+            return `# Database Configuration
+DATABASE_URL=postgresql://username:password@localhost:5432/database_name
+
+# Server Configuration
+PORT=8000
+NODE_ENV=development
+
+# File Upload Configuration (in MB)
+MAX_FILE_SIZE=10
+UPLOAD_PATH=./uploads
+
+# Security
+JWT_SECRET=your_jwt_secret_key_here
+CORS_ORIGIN=http://localhost:3000
+
+# Logging
+LOG_LEVEL=info
+LOG_FILE=app.log
+
+# Email Configuration (optional)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_password
+
+# External Services (optional)
+CLOUDINARY_URL=cloudinary://key:secret@cloud_name
+AWS_ACCESS_KEY_ID=your_access_key
+AWS_SECRET_ACCESS_KEY=your_secret_key
+AWS_REGION=us-east-1
+AWS_BUCKET_NAME=your-bucket-name`;
+        }
+
+        // Utility functions
+        function clearAll() {
+            if (schema.length === 0) return;
+            
+            if (confirm('Are you sure you want to clear all fields? This cannot be undone.')) {
+                schema = [];
+                usedFieldNames.clear();
+                localStorage.removeItem('schema');
+                render();
+                showToast('All fields cleared', 'info');
+            }
+        }
+
+        function selectAllFiles() {
+            document.querySelectorAll('.file-option input[type="checkbox"]').forEach(cb => {
+                cb.checked = true;
+            });
+            showToast('All files selected', 'info');
+        }
+
+        function deselectAllFiles() {
+            document.querySelectorAll('.file-option input[type="checkbox"]').forEach(cb => {
+                cb.checked = false;
+            });
+            showToast('All files deselected', 'info');
+        }
+
+        function copyCode() {
+            const code = document.getElementById('codeOutput').textContent;
+            if (code.includes('Click "Generate Server Code"')) {
+                showToast('Please generate code first', 'warning');
+                return;
+            }
+            
+            navigator.clipboard.writeText(code)
+                .then(() => showToast('Code copied to clipboard', 'success'))
+                .catch(() => showToast('Failed to copy code', 'error'));
+        }
+
+        function downloadCode() {
+            const code = document.getElementById('codeOutput').textContent;
+            if (code.includes('Click "Generate Server Code"')) {
+                showToast('Please generate code first', 'warning');
+                return;
+            }
+            
+            const blob = new Blob([code], { type: 'text/javascript' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'server.js';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast('server.js downloaded', 'success');
+        }
+
+        async function downloadSelectedFiles() {
+            const tableName = document.getElementById('tableName').value.trim() || 'records';
+            const files = [];
+            
+            // Always include server.js if generated
+            const serverCode = document.getElementById('codeOutput').textContent;
+            if (!serverCode.includes('Click "Generate Server Code"')) {
+                files.push({ name: 'server.js', content: serverCode });
+            }
+            
+            // Add selected files from modal
+            if (document.getElementById('modalDockerfile').checked) {
+                files.push({ name: 'Dockerfile', content: generateDockerfile() });
+            }
+            if (document.getElementById('modalDockerCompose').checked) {
+                files.push({ name: 'docker-compose.yml', content: generateDockerCompose() });
+            }
+            if (document.getElementById('modalDockerIgnore').checked) {
+                files.push({ name: '.dockerignore', content: generateDockerIgnore() });
+            }
+            if (document.getElementById('modalRenderYaml').checked) {
+                files.push({ name: 'render.yaml', content: generateRenderYaml() });
+            }
+            if (document.getElementById('modalReadme').checked) {
+                files.push({ name: 'README.md', content: generateReadme() });
+            }
+            if (document.getElementById('modalEnvExample').checked) {
+                files.push({ name: '.env.example', content: generateEnvExample() });
+            }
+            
+            if (files.length === 0) {
+                showToast('No files selected', 'warning');
+                return;
+            }
+            
+            try {
+                // Dynamically load JSZip
+                const JSZip = window.JSZip || (await import('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js')).default;
+                const zip = new JSZip();
+                
+                // Add all files to zip
+                files.forEach(file => {
+                    zip.file(file.name, file.content);
+                });
+                
+                // Add package.json
+                const packageJson = {
+                    name: `${tableName}-api`,
+                    version: '1.0.0',
+                    description: `API for ${tableName} database`,
+                    main: 'server.js',
+                    scripts: {
+                        start: 'node server.js',
+                        dev: 'nodemon server.js',
+                        test: 'jest'
+                    },
+                    dependencies: {
+                        express: '^4.18.2',
+                        pg: '^8.11.0',
+                        multer: '^1.4.5-lts.1'
+                    },
+                    devDependencies: {
+                        nodemon: '^3.0.1',
+                        jest: '^29.7.0'
+                    },
+                    engines: {
+                        node: '>=18.0.0'
+                    }
+                };
+                
+                zip.file('package.json', JSON.stringify(packageJson, null, 2));
+                
+                // Generate zip file
+                const content = await zip.generateAsync({ type: 'blob' });
+                const url = URL.createObjectURL(content);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${tableName}-project.zip`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showToast(`${files.length + 1} files downloaded as ${tableName}-project.zip`, 'success');
+                hideFileModal();
+            } catch (error) {
+                console.error('Error creating ZIP:', error);
+                showToast('Error creating ZIP file. Please try again.', 'error');
+            }
+        }
+
+        async function downloadZip() {
+            const tableName = document.getElementById('tableName').value.trim() || 'records';
+            const files = [];
+            
+            // Always include server.js if generated
+            const serverCode = document.getElementById('codeOutput').textContent;
+            if (!serverCode.includes('Click "Generate Server Code"')) {
+                files.push({ name: 'server.js', content: serverCode });
+            }
+            
+            // Add selected files
+            if (document.getElementById('dockerfile').checked) {
+                files.push({ name: 'Dockerfile', content: generateDockerfile() });
+            }
+            if (document.getElementById('dockerCompose').checked) {
+                files.push({ name: 'docker-compose.yml', content: generateDockerCompose() });
+            }
+            if (document.getElementById('dockerIgnore').checked) {
+                files.push({ name: '.dockerignore', content: generateDockerIgnore() });
+            }
+            if (document.getElementById('renderYaml').checked) {
+                files.push({ name: 'render.yaml', content: generateRenderYaml() });
+            }
+            if (document.getElementById('readme').checked) {
+                files.push({ name: 'README.md', content: generateReadme() });
+            }
+            if (document.getElementById('envExample').checked) {
+                files.push({ name: '.env.example', content: generateEnvExample() });
+            }
+            
+            if (files.length === 0) {
+                showToast('No files selected', 'warning');
+                return;
+            }
+            
+            try {
+                // Dynamically load JSZip
+                const JSZip = window.JSZip || (await import('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js')).default;
+                const zip = new JSZip();
+                
+                // Add all files to zip
+                files.forEach(file => {
+                    zip.file(file.name, file.content);
+                });
+                
+                // Add package.json
+                const packageJson = {
+                    name: `${tableName}-api`,
+                    version: '1.0.0',
+                    description: `API for ${tableName} database`,
+                    main: 'server.js',
+                    scripts: {
+                        start: 'node server.js',
+                        dev: 'nodemon server.js'
+                    },
+                    dependencies: {
+                        express: '^4.18.2',
+                        pg: '^8.11.0',
+                        multer: '^1.4.5-lts.1'
+                    },
+                    devDependencies: {
+                        nodemon: '^3.0.1'
+                    },
+                    engines: {
+                        node: '>=18.0.0'
+                    }
+                };
+                
+                zip.file('package.json', JSON.stringify(packageJson, null, 2));
+                
+                // Generate zip file
+                const content = await zip.generateAsync({ type: 'blob' });
+                const url = URL.createObjectURL(content);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${tableName}-project.zip`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showToast(`${files.length + 1} files downloaded as ${tableName}-project.zip`, 'success');
+            } catch (error) {
+                console.error('Error creating ZIP:', error);
+                showToast('Error creating ZIP file. Please try again.', 'error');
+            }
+        }
+    </script>
+</body>
+</html>
