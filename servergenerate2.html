@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Server.js Schema Generator</title>
+
+<style>
+  body {
+    font-family: system-ui, Arial, sans-serif;
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: 20px;
+  }
+  .container {
+    max-width: 1200px;
+    margin: auto;
+  }
+  h1 { margin-bottom: 6px; }
+  .note { font-size: 13px; opacity: .8; }
+  .row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+  input, select, button {
+    padding: 8px;
+    border-radius: 6px;
+    border: none;
+    font-size: 14px;
+  }
+  input, select {
+    background: #020617;
+    color: #e5e7eb;
+  }
+  button {
+    cursor: pointer;
+    background: #2563eb;
+    color: white;
+    font-weight: 600;
+  }
+  button.secondary { background: #334155; }
+  button.danger { background: #dc2626; }
+  pre {
+    background: #020617;
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 13px;
+    margin-top: 14px;
+    overflow-x: auto;
+  }
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<h1>🚀 server.js Generator</h1>
+<p class="note">
+  <b>id</b> is auto-created as identity primary key · schema saved for 30 minutes
+</p>
+
+<div id="fields"></div>
+
+<div class="row">
+  <button onclick="addField()">➕ Add Column</button>
+  <button class="secondary" onclick="generate()">⚡ Generate</button>
+  <button class="secondary" onclick="copyCode()">📋 Copy</button>
+  <button class="secondary" onclick="downloadCode()">⬇️ Download</button>
+  <button class="danger" onclick="clearSchema()">🗑 Clear</button>
+</div>
+
+<pre id="output">// server.js will appear here</pre>
+
+</div>
+
+<script>
+/* =========================
+   GLOBAL DICTIONARY
+========================= */
+let schema = [];
+
+/* =========================
+   STORAGE (30 MINUTES)
+========================= */
+const STORAGE_KEY = "schema_builder_data";
+const TTL = 30 * 60 * 1000;
+
+function saveToStorage() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({
+    time: Date.now(),
+    schema
+  }));
+}
+
+function loadFromStorage() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return;
+
+  const data = JSON.parse(raw);
+  if (Date.now() - data.time > TTL) {
+    localStorage.removeItem(STORAGE_KEY);
+    return;
+  }
+
+  schema = data.schema;
+  schema.forEach(renderField);
+}
+
+/* =========================
+   UI LOGIC
+========================= */
+function addField() {
+  const field = {
+    name: "",
+    type: "varchar",
+    limit: "",
+    scale: "",
+    nullable: false
+  };
+  schema.push(field);
+  renderField(field);
+  saveToStorage();
+}
+
+function renderField(field) {
+  const div = document.createElement("div");
+  div.className = "row";
+
+  div.innerHTML = `
+    <input placeholder="column name" value="${field.name}" />
+
+    <select>
+      <option value="varchar">varchar</option>
+      <option value="integer">integer</option>
+      <option value="decimal">decimal</option>
+      <option value="boolean">boolean</option>
+      <option value="date">date</option>
+      <option value="timestamp">timestamp</option>
+      <option value="bytea">bytea</option>
+    </select>
+
+    <input placeholder="limit / precision" style="display:none;width:140px" />
+    <input placeholder="scale" style="display:none;width:90px" />
+
+    <select>
+      <option value="not_null">NOT NULL</option>
+      <option value="null">NULL</option>
+    </select>
+
+    <button class="danger">✖</button>
+  `;
+
+  document.getElementById("fields").appendChild(div);
+
+  const [nameI, typeS, limitI, scaleI, nullS, delBtn] = div.children;
+
+  typeS.value = field.type;
+  nullS.value = field.nullable ? "null" : "not_null";
+  limitI.value = field.limit;
+  scaleI.value = field.scale;
+
+  function refresh() {
+    limitI.style.display = "none";
+    scaleI.style.display = "none";
+
+    if (typeS.value === "varchar" || typeS.value === "integer") {
+      limitI.style.display = "inline-block";
+    }
+    if (typeS.value === "decimal") {
+      limitI.style.display = "inline-block";
+      scaleI.style.display = "inline-block";
+    }
+  }
+
+  refresh();
+
+  [nameI, typeS, limitI, scaleI, nullS].forEach(el => {
+    el.oninput = el.onchange = () => {
+      field.name = nameI.value.trim();
+      field.type = typeS.value;
+      field.limit = limitI.value;
+      field.scale = scaleI.value;
+      field.nullable = nullS.value === "null";
+      refresh();
+      saveToStorage();
+    };
+  });
+
+  delBtn.onclick = () => {
+    schema = schema.filter(s => s !== field);
+    div.remove();
+    saveToStorage();
+  };
+}
+
+/* =========================
+   SERVER.JS GENERATOR
+========================= */
+function generate() {
+  let columns = `
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+`;
+
+  schema.forEach(f => {
+    if (!f.name) return;
+
+    let type = "";
+    if (f.type === "varchar")
+      type = `VARCHAR(${f.limit || 255})`;
+    else if (f.type === "integer")
+      type = "INT";
+    else if (f.type === "decimal")
+      type = f.limit ? `DECIMAL(${f.limit},${f.scale || 2})` : "DECIMAL";
+    else
+      type = f.type.toUpperCase();
+
+    columns += `  ${f.name} ${type} ${f.nullable ? "NULL" : "NOT NULL"},\n`;
+  });
+
+  const serverJs = `
+import express from "express";
+import cors from "cors";
+import pkg from "pg";
+
+const { Pool } = pkg;
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
+
+/* GLOBAL SCHEMA DICTIONARY */
+const schema = ${JSON.stringify(schema, null, 2)};
+
+app.get("/health", (_, res) => {
+  res.json({ status: "ok", time: new Date() });
+});
+
+app.post("/api/save", async (req, res) => {
+  const data = req.body;
+  res.json({ success: true, received: data });
+});
+
+const CREATE_TABLE = \`
+CREATE TABLE IF NOT EXISTS records (
+${columns.slice(0, -2)}
+);
+\`;
+
+(async () => {
+  await pool.query(CREATE_TABLE);
+  console.log("Table ready");
+})();
+
+app.listen(3000, () => console.log("Server running"));
+`;
+
+  document.getElementById("output").textContent = serverJs.trim();
+}
+
+/* =========================
+   UTILITIES
+========================= */
+function copyCode() {
+  navigator.clipboard.writeText(
+    document.getElementById("output").textContent
+  );
+  alert("Copied");
+}
+
+function downloadCode() {
+  const blob = new Blob(
+    [document.getElementById("output").textContent],
+    { type: "application/javascript" }
+  );
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "server.js";
+  a.click();
+}
+
+function clearSchema() {
+  if (!confirm("Clear schema?")) return;
+  schema = [];
+  document.getElementById("fields").innerHTML = "";
+  localStorage.removeItem(STORAGE_KEY);
+}
+
+/* INIT */
+loadFromStorage();
+</script>
+</body>
+</html>
