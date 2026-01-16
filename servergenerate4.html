@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Easy Database Builder</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #0f172a;
+  color: #e5e7eb;
+  padding: 20px;
+}
+.container {
+  max-width: 1200px;
+  margin: auto;
+}
+.row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+input, select, button {
+  padding: 8px;
+  border-radius: 6px;
+  border: none;
+}
+input, select {
+  background: #020617;
+  color: #e5e7eb;
+}
+button {
+  background: #2563eb;
+  color: white;
+  cursor: pointer;
+}
+button.gray { background: #334155; }
+button.red { background: #dc2626; }
+pre {
+  background: #020617;
+  padding: 14px;
+  border-radius: 8px;
+  margin-top: 14px;
+  overflow-x: auto;
+}
+label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 10px 0;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<h2>📦 Easy Database Builder</h2>
+<p>Simple words • Auto validation • Safe SQL</p>
+
+<label>
+  <input type="checkbox" id="autoCreated" checked>
+  Auto add created date & time
+</label>
+
+<div id="fields"></div>
+
+<div class="row">
+  <button onclick="addField()">➕ Add Field</button>
+  <button class="gray" onclick="generate()">⚡ Generate</button>
+  <button class="gray" onclick="copyCode()">📋 Copy</button>
+  <button class="gray" onclick="downloadCode()">⬇ Download</button>
+  <button class="red" onclick="clearAll()">🗑 Clear</button>
+</div>
+
+<pre id="output">// server.js will appear here</pre>
+
+</div>
+
+<script>
+/* ============================
+   GLOBAL SCHEMA (ARRAY)
+============================ */
+let schema = [];
+
+/* ============================
+   ADD FIELD
+============================ */
+function addField() {
+  const field = {
+    name: "",
+    type: "text",
+    limit: "",
+    scale: "",
+    required: true
+  };
+  schema.push(field);
+  render(field);
+}
+
+function render(field) {
+  const div = document.createElement("div");
+  div.className = "row";
+
+  div.innerHTML = `
+    <input placeholder="Field name" />
+
+    <select>
+      <option value="text">Short text</option>
+      <option value="description">Description</option>
+      <option value="number">Number</option>
+      <option value="amount">Amount</option>
+      <option value="yesno">Yes / No</option>
+      <option value="datetime">Date & Time</option>
+      <option value="file">File</option>
+    </select>
+
+    <input placeholder="Max length / digits" style="display:none;width:150px">
+    <input placeholder="Digits after dot" style="display:none;width:140px">
+
+    <select>
+      <option value="yes">Required</option>
+      <option value="no">Optional</option>
+    </select>
+
+    <button class="red">✖</button>
+  `;
+
+  document.getElementById("fields").appendChild(div);
+  const [nameI, typeS, limitI, scaleI, reqS, del] = div.children;
+
+  function applyPresets() {
+    if (typeS.value === "text" && !limitI.value) limitI.value = 20;
+    if (typeS.value === "description" && !limitI.value) limitI.value = 200;
+    if (typeS.value === "number" && !limitI.value) limitI.value = 6;
+    if (typeS.value === "amount") {
+      if (!limitI.value) limitI.value = 6;
+      if (!scaleI.value) scaleI.value = 2;
+    }
+  }
+
+  function refresh() {
+    limitI.style.display = "none";
+    scaleI.style.display = "none";
+
+    if (typeS.value === "text" || typeS.value === "description" || typeS.value === "number")
+      limitI.style.display = "inline-block";
+
+    if (typeS.value === "amount") {
+      limitI.style.display = "inline-block";
+      scaleI.style.display = "inline-block";
+    }
+
+    applyPresets();
+  }
+
+  refresh();
+
+  [nameI, typeS, limitI, scaleI, reqS].forEach(el => {
+    el.oninput = el.onchange = () => {
+      field.name = nameI.value.trim();
+      field.type = typeS.value;
+      field.limit = limitI.value;
+      field.scale = scaleI.value;
+      field.required = reqS.value === "yes";
+      refresh();
+    };
+  });
+
+  del.onclick = () => {
+    schema = schema.filter(s => s !== field);
+    div.remove();
+  };
+}
+
+/* ============================
+   GENERATOR
+============================ */
+function generate() {
+
+  /* ARRAY → DICTIONARY */
+  const dict = {};
+  schema.forEach(f => {
+    if (f.name) dict[f.name] = f;
+  });
+
+  /* SQL TYPE MAPPER */
+  const typeMap = {
+    text: f => `VARCHAR(${f.limit || 20})`,
+    description: f => `VARCHAR(${f.limit || 200})`,
+    number: f => (f.limit > 9 ? "BIGINT" : "INT"),
+    amount: f => `DECIMAL(${f.limit || 6},${f.scale || 2})`,
+    yesno: _ => "BOOLEAN",
+    datetime: _ => "TIMESTAMP",
+    file: _ => "BYTEA"
+  };
+
+  /* CREATE TABLE */
+  let columns = `
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+`;
+
+  for (const [name, f] of Object.entries(dict)) {
+    columns += `  ${name} ${typeMap[f.type](f)} ${f.required ? "NOT NULL" : "NULL"},\n`;
+  }
+
+  if (document.getElementById("autoCreated").checked) {
+    columns += `  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,\n`;
+  }
+
+  const serverJs = `
+import express from "express";
+import multer from "multer";
+import pkg from "pg";
+
+const { Pool } = pkg;
+const upload = multer();
+const app = express();
+
+app.use(express.json());
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
+
+const schema = ${JSON.stringify(dict, null, 2)};
+const AUTO_CREATED_AT = ${document.getElementById("autoCreated").checked};
+
+const typeMap = {
+  text: f => \`VARCHAR(\${f.limit || 20})\`,
+  description: f => \`VARCHAR(\${f.limit || 200})\`,
+  number: f => (f.limit > 9 ? "BIGINT" : "INT"),
+  amount: f => \`DECIMAL(\${f.limit || 6},\${f.scale || 2})\`,
+  yesno: _ => "BOOLEAN",
+  datetime: _ => "TIMESTAMP",
+  file: _ => "BYTEA"
+};
+
+function createTableSQL() {
+  let cols = "id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,\\n";
+  for (const [n, f] of Object.entries(schema)) {
+    cols += \`\${n} \${typeMap[f.type](f)} \${f.required ? "NOT NULL" : "NULL"},\\n\`;
+  }
+  if (AUTO_CREATED_AT) {
+    cols += "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,\\n";
+  }
+  return \`CREATE TABLE IF NOT EXISTS records (\\n\${cols.slice(0,-2)}\\n);\`;
+}
+
+function validate(body, files) {
+  for (const [n, f] of Object.entries(schema)) {
+    if (f.type === "file") {
+      if (f.required && !files[n]) return \`\${n} file required\`;
+      continue;
+    }
+    if (f.required && !(n in body)) return \`\${n} required\`;
+  }
+  for (const k of Object.keys(body)) {
+    if (!schema[k]) return \`Extra field: \${k}\`;
+  }
+  return null;
+}
+
+function insertSQL(body, files) {
+  const cols = [];
+  const vals = [];
+  let i = 1;
+
+  for (const [n, f] of Object.entries(schema)) {
+    if (f.type === "file" && files[n]) {
+      cols.push(n);
+      vals.push(files[n][0].buffer);
+    } else if (n in body) {
+      cols.push(n);
+      vals.push(body[n]);
+    }
+  }
+
+  return {
+    text: \`INSERT INTO records (\${cols.join(",")}) VALUES (\${cols.map(()=>"$"+i++).join(",")})\`,
+    values: vals
+  };
+}
+
+(async () => {
+  await pool.query(createTableSQL());
+})();
+
+app.get("/health", (_, res) => res.json({ status: "ok" }));
+
+app.post("/api/save", upload.any(), async (req, res) => {
+  const err = validate(req.body, req.files || {});
+  if (err) return res.status(400).json({ error: err });
+
+  const q = insertSQL(req.body, req.files || {});
+  await pool.query(q.text, q.values);
+
+  res.json({ success: true });
+});
+
+app.listen(3000);
+`;
+
+  document.getElementById("output").textContent = serverJs.trim();
+}
+
+/* ============================
+   UTIL
+============================ */
+function copyCode() {
+  navigator.clipboard.writeText(output.textContent);
+}
+function downloadCode() {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([output.textContent]));
+  a.download = "server.js";
+  a.click();
+}
+function clearAll() {
+  schema = [];
+  fields.innerHTML = "";
+  output.textContent = "";
+}
+</script>
+</body>
+</html>
