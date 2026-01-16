@@ -1,0 +1,1778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schema Builder • Production Database Generator</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-light: #3b82f6;
+            --primary-dark: #1d4ed8;
+            --success: #059669;
+            --danger: #dc2626;
+            --warning: #f59e0b;
+            --info: #0ea5e9;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            
+            --bg-primary: var(--gray-50);
+            --bg-secondary: white;
+            --bg-card: white;
+            --bg-input: var(--gray-100);
+            --border-color: var(--gray-200);
+            --text-primary: var(--gray-900);
+            --text-secondary: var(--gray-600);
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+            --radius-sm: 0.375rem;
+            --radius: 0.5rem;
+            --radius-md: 0.75rem;
+            --radius-lg: 1rem;
+        }
+
+        .dark-mode {
+            --bg-primary: var(--gray-900);
+            --bg-secondary: var(--gray-800);
+            --bg-card: var(--gray-800);
+            --bg-input: var(--gray-700);
+            --border-color: var(--gray-700);
+            --text-primary: var(--gray-100);
+            --text-secondary: var(--gray-400);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.5;
+            min-height: 100vh;
+            transition: background-color 0.3s ease;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            margin-bottom: 1.5rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.25rem;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .tagline {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 2rem;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+
+        .theme-toggle:hover {
+            background: var(--border-color);
+            transform: translateY(-1px);
+        }
+
+        .theme-icon {
+            font-size: 1.25rem;
+        }
+
+        /* Main Layout */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (min-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .preview-section {
+                grid-column: span 2;
+            }
+        }
+
+        /* Card */
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+            height: 100%;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .card-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Form */
+        .config-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (min-width: 640px) {
+            .config-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .form-input.error {
+            border-color: var(--danger);
+        }
+
+        .error-message {
+            color: var(--danger);
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .checkbox-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        /* Fields */
+        .fields-container {
+            margin-bottom: 1.5rem;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+
+        .fields-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .fields-container::-webkit-scrollbar-track {
+            background: var(--bg-input);
+            border-radius: 3px;
+        }
+
+        .fields-container::-webkit-scrollbar-thumb {
+            background: var(--gray-400);
+            border-radius: 3px;
+        }
+
+        .fields-container::-webkit-scrollbar-thumb:hover {
+            background: var(--gray-500);
+        }
+
+        .field-item {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            transition: all 0.2s ease;
+        }
+
+        .field-item:hover {
+            border-color: var(--primary-light);
+            transform: translateY(-1px);
+        }
+
+        .field-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .field-title {
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .field-type-badge {
+            background: var(--primary-light);
+            color: white;
+            padding: 0.125rem 0.5rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .field-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .field-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .field-input {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            color: var(--text-primary);
+        }
+
+        .field-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .field-hint {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+            padding-left: 0.25rem;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-secondary {
+            background: var(--gray-200);
+            color: var(--gray-800);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-300);
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #047857;
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #b91c1c;
+            transform: translateY(-1px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--bg-input);
+            transform: translateY(-1px);
+        }
+
+        .btn-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        /* Preview Section */
+        .preview-section {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (min-width: 1024px) {
+            .preview-section {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* Schema Previews */
+        .schema-previews {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        .preview-tabs {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 1rem;
+        }
+
+        .preview-tab {
+            padding: 0.5rem 1rem;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .preview-tab:hover {
+            color: var(--text-primary);
+        }
+
+        .preview-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .schema-preview {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-all;
+            height: 300px;
+            overflow-y: auto;
+            padding: 1rem;
+            background: var(--bg-input);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+        }
+
+        .sql-keyword {
+            color: #ef4444;
+            font-weight: 500;
+        }
+
+        .sql-type {
+            color: #059669;
+            font-weight: 500;
+        }
+
+        .sql-identifier {
+            color: #3b82f6;
+        }
+
+        .sql-comment {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .sql-constraint {
+            color: #f59e0b;
+        }
+
+        .friendly-preview {
+            font-size: 0.875rem;
+            line-height: 1.6;
+            padding: 1rem;
+            background: var(--bg-input);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+            height: 300px;
+            overflow-y: auto;
+        }
+
+        .friendly-item {
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            background: var(--bg-card);
+            border-radius: var(--radius-sm);
+            border-left: 3px solid var(--primary);
+        }
+
+        .friendly-field-name {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .friendly-field-type {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+        }
+
+        .friendly-field-required {
+            color: var(--danger);
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+        }
+
+        .friendly-field-hint {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Code Output */
+        .code-container {
+            position: relative;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .code-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        pre {
+            margin: 0;
+            padding: 0;
+        }
+
+        #output {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', monospace;
+            font-size: 0.75rem;
+            line-height: 1.5;
+            color: var(--text-primary);
+            height: 400px;
+            overflow-y: auto;
+            padding: 1rem;
+            background: var(--bg-input);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-text {
+            font-size: 0.875rem;
+        }
+
+        /* Stats */
+        .stats {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: center;
+            flex: 1;
+            min-width: 80px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Mobile Optimizations */
+        @media (max-width: 640px) {
+            .container {
+                padding: 0.75rem;
+            }
+            
+            .card {
+                padding: 1rem;
+            }
+            
+            .field-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .field-controls {
+                flex-wrap: wrap;
+            }
+            
+            .stats {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            background: var(--success);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            max-width: 400px;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.error {
+            background: var(--danger);
+        }
+
+        .toast.info {
+            background: var(--info);
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.5rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .badge-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .badge-info {
+            background: var(--info);
+            color: white;
+        }
+
+        /* Toggle */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--gray-300);
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--primary);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">DB</div>
+                <div>
+                    <div class="logo-text">Schema Builder</div>
+                    <div class="tagline">Generate production-ready database schemas with validation</div>
+                </div>
+            </div>
+            <button class="theme-toggle" id="themeToggle">
+                <span class="theme-icon" id="themeIcon">🌙</span>
+                <span id="themeText">Dark Mode</span>
+            </button>
+        </header>
+
+        <div class="main-content">
+            <!-- Left Column: Builder -->
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title">Schema Builder</h2>
+                        <div class="card-subtitle">Define your table structure with field-level validation</div>
+                    </div>
+                    <div class="badge badge-success" id="validationStatus">✓ Valid</div>
+                </div>
+
+                <!-- Configuration -->
+                <div class="form-group">
+                    <label class="form-label">Table Name</label>
+                    <input type="text" id="tableName" class="form-input" value="records" 
+                           placeholder="e.g., users, products, orders" oninput="updatePreviews()">
+                </div>
+
+                <div class="checkbox-group" style="margin-bottom: 1.5rem;">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="autoCreated" checked onchange="updatePreviews()">
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <label class="checkbox-label">Add automatic created_at timestamp</label>
+                </div>
+
+                <!-- Fields Container -->
+                <div class="fields-container" id="fieldsContainer">
+                    <!-- Fields will be added here -->
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="addField()">
+                        <span>+</span> Add New Field
+                    </button>
+                    <button class="btn btn-success" onclick="generate()">
+                        <span>⚡</span> Generate Server Code
+                    </button>
+                    <button class="btn btn-outline" onclick="clearAll()">
+                        <span>🗑️</span> Clear All
+                    </button>
+                </div>
+
+                <!-- Stats -->
+                <div class="stats" id="stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalFields">0</div>
+                        <div class="stat-label">Total Fields</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="requiredFields">0</div>
+                        <div class="stat-label">Required</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="uniqueTypes">0</div>
+                        <div class="stat-label">Data Types</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview Section -->
+            <div class="preview-section">
+                <!-- Technical Preview -->
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h2 class="card-title">SQL Schema Preview</h2>
+                            <div class="card-subtitle">Production CREATE TABLE statement</div>
+                        </div>
+                    </div>
+                    <div class="schema-preview" id="sqlPreview">
+                        <span class="sql-comment">-- Add fields to generate SQL schema</span>
+                    </div>
+                </div>
+
+                <!-- User-Friendly Preview -->
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h2 class="card-title">Schema Overview</h2>
+                            <div class="card-subtitle">Human-readable field summary</div>
+                        </div>
+                    </div>
+                    <div class="friendly-preview" id="friendlyPreview">
+                        <div class="empty-state">
+                            <div class="empty-icon">📋</div>
+                            <div class="empty-text">No fields added yet</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Code Output Section -->
+        <div style="margin-top: 1.5rem;">
+            <div class="card code-container">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title">Generated Server Code</h2>
+                        <div class="card-subtitle">Production-ready Express.js server with complete validation</div>
+                    </div>
+                    <div class="code-actions">
+                        <button class="btn btn-outline btn-sm" onclick="copyCode()">
+                            <span>📋</span> Copy Code
+                        </button>
+                        <button class="btn btn-success btn-sm" onclick="downloadCode()">
+                            <span>⬇</span> Download server.js
+                        </button>
+                    </div>
+                </div>
+                <pre><code id="output">// Click "Generate Server Code" to create production-ready Express.js server</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const TYPE_PRESETS = {
+            text: { 
+                limit: "50", 
+                hint: "Short text field (max 50 characters)", 
+                sql: "VARCHAR", 
+                friendly: "Text"
+            },
+            description: { 
+                limit: "500", 
+                hint: "Long description field (max 500 characters)", 
+                sql: "VARCHAR", 
+                friendly: "Long Text"
+            },
+            number: { 
+                limit: "10", 
+                hint: "Whole number (max 10 digits)", 
+                sql: "INTEGER", 
+                friendly: "Number",
+                allowNegative: true
+            },
+            amount: { 
+                limit: "10", 
+                scale: "2", 
+                hint: "Decimal number (10 total digits, 2 decimal places)", 
+                sql: "DECIMAL", 
+                friendly: "Decimal",
+                allowNegative: true
+            },
+            yesno: { 
+                hint: "Boolean true/false field", 
+                sql: "BOOLEAN", 
+                friendly: "Yes/No"
+            },
+            datetime: { 
+                hint: "Date and time field", 
+                sql: "TIMESTAMP", 
+                friendly: "Date & Time"
+            },
+            date: { 
+                hint: "Date only field", 
+                sql: "DATE", 
+                friendly: "Date"
+            },
+            file: { 
+                limit: "10", 
+                hint: "File upload field (max 10MB)", 
+                sql: "BYTEA", 
+                friendly: "File"
+            }
+        };
+
+        let schema = [];
+        let usedFieldNames = new Set();
+        let isDarkMode = false;
+
+        // Initialize
+        init();
+
+        function init() {
+            // Theme setup
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                toggleTheme();
+            }
+            
+            // Add event listeners
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+            document.getElementById('tableName').addEventListener('input', updatePreviews);
+            document.getElementById('autoCreated').addEventListener('change', updatePreviews);
+            
+            // Add first field
+            addField();
+        }
+
+        // Theme Toggle
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('dark-mode', isDarkMode);
+            
+            const icon = document.getElementById('themeIcon');
+            const text = document.getElementById('themeText');
+            
+            if (isDarkMode) {
+                icon.textContent = '☀️';
+                text.textContent = 'Light Mode';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                icon.textContent = '🌙';
+                text.textContent = 'Dark Mode';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        // Toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Update stats
+        function updateStats() {
+            const totalFields = schema.filter(f => f.name.trim()).length;
+            const requiredFields = schema.filter(f => f.required && f.name.trim()).length;
+            const uniqueTypes = new Set(schema.filter(f => f.name.trim()).map(f => f.type)).size;
+            
+            document.getElementById('totalFields').textContent = totalFields;
+            document.getElementById('requiredFields').textContent = requiredFields;
+            document.getElementById('uniqueTypes').textContent = uniqueTypes;
+            
+            // Update validation status
+            const isValid = validateSchema();
+            document.getElementById('validationStatus').textContent = isValid ? '✓ Valid' : '⚠ Issues';
+            document.getElementById('validationStatus').className = isValid ? 'badge badge-success' : 'badge badge-warning';
+        }
+
+        // Validate entire schema
+        function validateSchema() {
+            usedFieldNames.clear();
+            
+            for (const field of schema) {
+                if (!field.name.trim()) continue;
+                
+                const error = validateFieldName(field.name, schema.indexOf(field));
+                if (error) return false;
+                
+                usedFieldNames.add(field.name.toLowerCase());
+            }
+            
+            return true;
+        }
+
+        // Validate field name
+        function validateFieldName(name, currentIndex) {
+            const nameStr = name.trim();
+            
+            if (!nameStr) {
+                return "Field name is required";
+            }
+            
+            // Check field name format
+            if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(nameStr)) {
+                return "Must start with letter, only letters, numbers, underscores";
+            }
+            
+            // Check for duplicate names (case-insensitive)
+            const lowercaseName = nameStr.toLowerCase();
+            for (let i = 0; i < schema.length; i++) {
+                if (i !== currentIndex && schema[i].name.toLowerCase() === lowercaseName) {
+                    return "Field name must be unique";
+                }
+            }
+            
+            return null;
+        }
+
+        // Add field
+        function addField() {
+            schema.push({
+                name: "",
+                type: "text",
+                limit: "",
+                scale: "",
+                required: true,
+                allowNegative: true
+            });
+            render();
+        }
+
+        // Clear all fields
+        function clearAll() {
+            if (schema.length === 0) return;
+            
+            if (confirm("Are you sure you want to clear all fields?")) {
+                schema = [];
+                usedFieldNames.clear();
+                render();
+                showToast("All fields cleared", "info");
+            }
+        }
+
+        // Move field
+        function moveField(index, direction) {
+            if (index + direction < 0 || index + direction >= schema.length) return;
+            
+            [schema[index], schema[index + direction]] = [schema[index + direction], schema[index]];
+            render();
+        }
+
+        // Delete field
+        function deleteField(index) {
+            schema.splice(index, 1);
+            render();
+            showToast("Field removed", "info");
+        }
+
+        // Update field property
+        function updateField(index, property, value) {
+            schema[index][property] = value;
+            updatePreviews();
+        }
+
+        // Apply preset values
+        function applyPreset(typeSelect, limitInput, scaleInput, allowNegativeSelect, index) {
+            const preset = TYPE_PRESETS[typeSelect.value];
+            
+            if (!preset) return;
+            
+            // Only apply if empty
+            if (preset.limit && !limitInput.value) {
+                limitInput.value = preset.limit;
+                schema[index].limit = preset.limit;
+            }
+            
+            if (preset.scale && !scaleInput.value) {
+                scaleInput.value = preset.scale;
+                schema[index].scale = preset.scale;
+            }
+            
+            // Only show allowNegative for number/amount types
+            if (allowNegativeSelect) {
+                if (typeSelect.value === 'number' || typeSelect.value === 'amount') {
+                    allowNegativeSelect.style.display = 'inline-block';
+                    if (preset.allowNegative !== undefined) {
+                        allowNegativeSelect.value = preset.allowNegative ? 'yes' : 'no';
+                        schema[index].allowNegative = preset.allowNegative;
+                    }
+                } else {
+                    allowNegativeSelect.style.display = 'none';
+                }
+            }
+        }
+
+        // Render all fields
+        function render() {
+            const container = document.getElementById('fieldsContainer');
+            
+            if (schema.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📦</div>
+                        <div class="empty-text">No fields yet. Click "Add Field" to start building your schema.</div>
+                    </div>
+                `;
+                updateStats();
+                updatePreviews();
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            schema.forEach((field, index) => {
+                const preset = TYPE_PRESETS[field.type] || {};
+                const fieldDiv = document.createElement('div');
+                fieldDiv.className = 'field-item';
+                fieldDiv.innerHTML = `
+                    <div class="field-header">
+                        <div class="field-title">
+                            Field ${index + 1}
+                            <span class="field-type-badge">${field.type}</span>
+                        </div>
+                        <div class="field-controls">
+                            <button class="btn btn-outline btn-sm" onclick="moveField(${index}, -1)" ${index === 0 ? 'disabled' : ''}>
+                                ↑ Up
+                            </button>
+                            <button class="btn btn-outline btn-sm" onclick="moveField(${index}, 1)" ${index === schema.length - 1 ? 'disabled' : ''}>
+                                ↓ Down
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteField(${index})">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                    <div class="field-row">
+                        <div>
+                            <input type="text" class="field-input field-name" placeholder="field_name" value="${field.name}" 
+                                   data-index="${index}" oninput="handleFieldInput(this, 'name')">
+                            <div class="error-message" id="error-${index}"></div>
+                        </div>
+                        <select class="field-input field-type" data-index="${index}" onchange="handleTypeChange(this)">
+                            <option value="text">Text</option>
+                            <option value="description">Description</option>
+                            <option value="number">Number</option>
+                            <option value="amount">Amount</option>
+                            <option value="yesno">Yes/No</option>
+                            <option value="datetime">Date & Time</option>
+                            <option value="date">Date Only</option>
+                            <option value="file">File</option>
+                        </select>
+                        <select class="field-input" data-index="${index}" onchange="handleFieldInput(this, 'required')">
+                            <option value="yes">Required ✓</option>
+                            <option value="no">Optional</option>
+                        </select>
+                    </div>
+                    <div class="field-row" id="options-${index}"></div>
+                    <div class="field-hint" id="hint-${index}">${preset.hint || ''}</div>
+                `;
+                
+                container.appendChild(fieldDiv);
+                
+                // Set initial values
+                const typeSelect = fieldDiv.querySelector('.field-type');
+                const requiredSelect = fieldDiv.querySelector('select[onchange*="handleFieldInput"]');
+                
+                typeSelect.value = field.type;
+                requiredSelect.value = field.required ? 'yes' : 'no';
+                
+                // Update options based on type
+                updateFieldOptions(index);
+            });
+            
+            updateStats();
+            updatePreviews();
+        }
+
+        // Handle field input
+        function handleFieldInput(input, property) {
+            const index = parseInt(input.dataset.index);
+            const value = input.type === 'checkbox' ? input.checked : 
+                         input.tagName === 'SELECT' ? input.value === 'yes' : 
+                         input.value;
+            
+            updateField(index, property, value);
+            
+            // Special handling for field name validation
+            if (property === 'name') {
+                const errorElement = document.getElementById(`error-${index}`);
+                const error = validateFieldName(value, index);
+                
+                if (error) {
+                    input.classList.add('error');
+                    errorElement.textContent = error;
+                    errorElement.classList.add('show');
+                } else {
+                    input.classList.remove('error');
+                    errorElement.classList.remove('show');
+                }
+            }
+        }
+
+        // Handle type change
+        function handleTypeChange(select) {
+            const index = parseInt(select.dataset.index);
+            updateField(index, 'type', select.value);
+            updateFieldOptions(index);
+            
+            // Update hint
+            const preset = TYPE_PRESETS[select.value] || {};
+            document.getElementById(`hint-${index}`).textContent = preset.hint || '';
+        }
+
+        // Update field options based on type
+        function updateFieldOptions(index) {
+            const optionsDiv = document.getElementById(`options-${index}`);
+            const field = schema[index];
+            const preset = TYPE_PRESETS[field.type] || {};
+            
+            let html = '';
+            
+            switch (field.type) {
+                case 'text':
+                case 'description':
+                case 'file':
+                    html = `
+                        <div style="grid-column: span 1">
+                            <input type="text" class="field-input" placeholder="Max ${field.type === 'file' ? 'size (MB)' : 'characters'}" 
+                                   value="${field.limit || preset.limit || ''}"
+                                   oninput="handleFieldInput(this, 'limit')"
+                                   data-index="${index}">
+                        </div>
+                    `;
+                    break;
+                    
+                case 'number':
+                    html = `
+                        <div style="grid-column: span 1">
+                            <input type="text" class="field-input" placeholder="Max digits" 
+                                   value="${field.limit || preset.limit || ''}"
+                                   oninput="handleFieldInput(this, 'limit')"
+                                   data-index="${index}">
+                        </div>
+                        <div style="grid-column: span 1">
+                            <select class="field-input" onchange="handleFieldInput(this, 'allowNegative')" data-index="${index}">
+                                <option value="yes" ${field.allowNegative ? 'selected' : ''}>Allow Negative</option>
+                                <option value="no" ${!field.allowNegative ? 'selected' : ''}>Positive Only</option>
+                            </select>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'amount':
+                    html = `
+                        <div style="grid-column: span 1">
+                            <input type="text" class="field-input" placeholder="Total digits" 
+                                   value="${field.limit || preset.limit || ''}"
+                                   oninput="handleFieldInput(this, 'limit')"
+                                   data-index="${index}">
+                        </div>
+                        <div style="grid-column: span 1">
+                            <input type="text" class="field-input" placeholder="Decimal places" 
+                                   value="${field.scale || preset.scale || ''}"
+                                   oninput="handleFieldInput(this, 'scale')"
+                                   data-index="${index}">
+                        </div>
+                        <div style="grid-column: span 1">
+                            <select class="field-input" onchange="handleFieldInput(this, 'allowNegative')" data-index="${index}">
+                                <option value="yes" ${field.allowNegative ? 'selected' : ''}>Allow Negative</option>
+                                <option value="no" ${!field.allowNegative ? 'selected' : ''}>Positive Only</option>
+                            </select>
+                        </div>
+                    `;
+                    break;
+            }
+            
+            optionsDiv.innerHTML = html;
+        }
+
+        // Update both previews
+        function updatePreviews() {
+            updateSQLPreview();
+            updateFriendlyPreview();
+            updateStats();
+        }
+
+        // Update SQL preview
+        function updateSQLPreview() {
+            const preview = document.getElementById('sqlPreview');
+            const tableName = document.getElementById('tableName').value.trim() || 'records';
+            const autoCreated = document.getElementById('autoCreated').checked;
+            
+            const fields = schema.filter(f => f.name.trim());
+            
+            if (fields.length === 0) {
+                preview.innerHTML = `<span class="sql-comment">-- Add fields to generate SQL schema</span>`;
+                return;
+            }
+            
+            let sql = `<span class="sql-keyword">CREATE TABLE</span> <span class="sql-identifier">"${tableName}"</span> (\n`;
+            sql += `  <span class="sql-identifier">"id"</span> <span class="sql-type">BIGINT</span> <span class="sql-keyword">GENERATED ALWAYS AS IDENTITY PRIMARY KEY</span>,\n`;
+            
+            fields.forEach((field, index) => {
+                const fieldName = field.name.toLowerCase();
+                let typeDef = '';
+                
+                switch (field.type) {
+                    case 'text':
+                        typeDef = `VARCHAR(${field.limit || 50})`;
+                        break;
+                    case 'description':
+                        typeDef = `VARCHAR(${field.limit || 500})`;
+                        break;
+                    case 'number':
+                        const digits = parseInt(field.limit) || 10;
+                        if (digits <= 9) {
+                            typeDef = 'INTEGER';
+                        } else if (digits <= 18) {
+                            typeDef = 'BIGINT';
+                        } else {
+                            typeDef = `NUMERIC(${digits})`;
+                        }
+                        break;
+                    case 'amount':
+                        const total = parseInt(field.limit) || 10;
+                        const decimal = parseInt(field.scale) || 2;
+                        typeDef = `DECIMAL(${total},${decimal})`;
+                        break;
+                    case 'yesno':
+                        typeDef = 'BOOLEAN';
+                        break;
+                    case 'datetime':
+                        typeDef = 'TIMESTAMP';
+                        break;
+                    case 'date':
+                        typeDef = 'DATE';
+                        break;
+                    case 'file':
+                        typeDef = 'BYTEA';
+                        break;
+                    default:
+                        typeDef = 'TEXT';
+                }
+                
+                sql += `  <span class="sql-identifier">"${fieldName}"</span> <span class="sql-type">${typeDef}</span>`;
+                
+                if (field.required) {
+                    sql += ` <span class="sql-keyword">NOT NULL</span>`;
+                }
+                
+                if (index < fields.length - 1 || autoCreated) {
+                    sql += ',';
+                }
+                sql += '\n';
+            });
+            
+            if (autoCreated) {
+                sql += `  <span class="sql-identifier">"created_at"</span> <span class="sql-type">TIMESTAMP</span> <span class="sql-keyword">NOT NULL DEFAULT CURRENT_TIMESTAMP</span>\n`;
+            }
+            
+            sql += ');';
+            preview.innerHTML = sql;
+        }
+
+        // Update friendly preview
+        function updateFriendlyPreview() {
+            const preview = document.getElementById('friendlyPreview');
+            const fields = schema.filter(f => f.name.trim());
+            
+            if (fields.length === 0) {
+                preview.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📋</div>
+                        <div class="empty-text">No fields added yet</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            fields.forEach(field => {
+                const preset = TYPE_PRESETS[field.type] || {};
+                let details = preset.friendly || field.type;
+                
+                if (field.type === 'text' || field.type === 'description') {
+                    details += ` (max ${field.limit || preset.limit} chars)`;
+                } else if (field.type === 'number') {
+                    details += ` (${field.limit || preset.limit} digits)`;
+                    if (!field.allowNegative) details += ' - Positive only';
+                } else if (field.type === 'amount') {
+                    details += ` (${field.limit || preset.limit} total, ${field.scale || preset.scale} decimal)`;
+                    if (!field.allowNegative) details += ' - Positive only';
+                } else if (field.type === 'file') {
+                    details += ` (max ${field.limit || preset.limit}MB)`;
+                }
+                
+                html += `
+                    <div class="friendly-item">
+                        <div>
+                            <span class="friendly-field-name">${field.name}</span>
+                            <span class="friendly-field-type">${details}</span>
+                            ${field.required ? '<span class="friendly-field-required">Required</span>' : ''}
+                        </div>
+                        <div class="friendly-field-hint">${preset.hint || ''}</div>
+                    </div>
+                `;
+            });
+            
+            preview.innerHTML = html;
+        }
+
+        // Generate server code
+        function generate() {
+            if (!validateSchema()) {
+                showToast("Please fix field validation errors", "error");
+                return;
+            }
+            
+            const tableName = document.getElementById('tableName').value.trim() || 'records';
+            const autoCreated = document.getElementById('autoCreated').checked;
+            
+            // Build field dictionary
+            const fieldDict = {};
+            schema.forEach(field => {
+                if (!field.name.trim()) return;
+                const fieldName = field.name.toLowerCase();
+                fieldDict[fieldName] = {
+                    type: field.type,
+                    limit: field.limit || '',
+                    scale: field.scale || '',
+                    required: field.required,
+                    allowNegative: field.allowNegative
+                };
+            });
+            
+            const serverCode = `import express from "express";
+import multer from "multer";
+import pkg from "pg";
+const { Pool } = pkg;
+
+const upload = multer();
+const app = express();
+app.use(express.json());
+
+const TABLE_NAME = "${tableName}";
+const schema = ${JSON.stringify(fieldDict, null, 2)};
+const AUTO_CREATED_AT = ${autoCreated};
+
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+});
+
+const typeMap = {
+    text: field => \`VARCHAR(\${field.limit || 50})\`,
+    description: field => \`VARCHAR(\${field.limit || 500})\`,
+    number: field => {
+        const digits = parseInt(field.limit, 10) || 10;
+        if (digits <= 9) return "INTEGER";
+        if (digits <= 18) return "BIGINT";
+        return \`NUMERIC(\${digits})\`;
+    },
+    amount: field => \`DECIMAL(\${field.limit || 10}, \${field.scale || 2})\`,
+    yesno: () => "BOOLEAN",
+    datetime: () => "TIMESTAMP",
+    date: () => "DATE",
+    file: () => "BYTEA"
+};
+
+function createTableSQL() {
+    let columns = '"id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,\\n';
+    
+    for (const [name, field] of Object.entries(schema)) {
+        columns += \`"\${name}" \${typeMap[field.type](field)} \${field.required ? "NOT NULL" : "NULL"},\\n\`;
+    }
+    
+    if (AUTO_CREATED_AT) {
+        columns += '"created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,\\n';
+    }
+    
+    return \`CREATE TABLE IF NOT EXISTS "\${TABLE_NAME}" (\\n\${columns.slice(0, -2)}\\n);\`;
+}
+
+function validate(body, files) {
+    // Required field validation
+    for (const [name, field] of Object.entries(schema)) {
+        if (field.type === "file") {
+            if (field.required && !files[name]) {
+                return \`\${name} file is required\`;
+            }
+        } else {
+            const value = body[name];
+            if (field.required && (value === undefined || value === null || String(value).trim() === "")) {
+                return \`\${name} is required\`;
+            }
+            
+            // Numeric validation
+            if ((field.type === "number" || field.type === "amount") && value !== undefined && value !== null && String(value).trim() !== "") {
+                const numValue = String(value).trim();
+                
+                if (!/^-?\\d+(\\.\\d+)?$/.test(numValue)) {
+                    return \`\${name} must be a valid number\`;
+                }
+                
+                if (!field.allowNegative && numValue.startsWith("-")) {
+                    return \`\${name} must be a positive number\`;
+                }
+                
+                // Amount precision validation
+                if (field.type === "amount") {
+                    const [integerPart = "", decimalPart = ""] = numValue.replace("-", "").split(".");
+                    const maxInteger = parseInt(field.limit || 10, 10) - parseInt(field.scale || 2, 10);
+                    const maxDecimal = parseInt(field.scale || 2, 10);
+                    
+                    if (integerPart.length > maxInteger) {
+                        return \`\${name} integer part exceeds \${maxInteger} digits\`;
+                    }
+                    if (decimalPart.length > maxDecimal) {
+                        return \`\${name} decimal part exceeds \${maxDecimal} places\`;
+                    }
+                }
+                
+                // Number range validation
+                if (field.type === "number") {
+                    const maxDigits = parseInt(field.limit || 10, 10);
+                    const numStr = numValue.replace(/^-/, '');
+                    if (numStr.length > maxDigits) {
+                        return \`\${name} exceeds \${maxDigits} digits\`;
+                    }
+                }
+            }
+            
+            // Date validation
+            if ((field.type === "datetime" || field.type === "date") && value && String(value).trim() !== "") {
+                const dateValue = new Date(value);
+                if (isNaN(dateValue.getTime())) {
+                    return \`\${name} must be a valid date\`;
+                }
+            }
+        }
+    }
+    
+    // Extra field validation
+    for (const key of Object.keys(body)) {
+        if (!schema[key]) {
+            return \`Extra field not allowed: \${key}\`;
+        }
+    }
+    
+    // Extra file validation
+    for (const key of Object.keys(files)) {
+        if (!schema[key] || schema[key].type !== "file") {
+            return \`Extra file not allowed: \${key}\`;
+        }
+    }
+    
+    return null;
+}
+
+function buildInsertQuery(body, files) {
+    const columns = [];
+    const values = [];
+    
+    for (const [name, field] of Object.entries(schema)) {
+        if (field.type === "file") {
+            if (files[name]) {
+                columns.push(\`"\${name}"\`);
+                values.push(files[name].buffer);
+            } else if (field.required) {
+                throw new Error(\`\${name} is required\`);
+            }
+        } else {
+            if (!(name in body)) {
+                if (field.required) {
+                    throw new Error(\`\${name} is required\`);
+                }
+                continue;
+            }
+            
+            columns.push(\`"\${name}"\`);
+            
+            // Type conversion
+            let value = body[name];
+            if (field.type === "number") {
+                value = parseInt(value, 10);
+            } else if (field.type === "amount") {
+                value = parseFloat(value);
+            } else if (field.type === "yesno") {
+                value = String(value).toLowerCase() === "true" || value === "1" || value === 1;
+            } else if (field.type === "text" || field.type === "description") {
+                value = String(value).trim();
+            }
+            
+            values.push(value);
+        }
+    }
+    
+    const placeholders = columns.map((_, i) => \`$\${i + 1}\`).join(",");
+    return {
+        text: \`INSERT INTO "\${TABLE_NAME}" (\${columns.join(",")}) VALUES (\${placeholders}) RETURNING id\`,
+        values: values
+    };
+}
+
+// Generate multer fields configuration
+const uploadFields = Object.entries(schema)
+    .filter(([_, field]) => field.type === "file")
+    .map(([name, _]) => ({ name, maxCount: 1 }));
+
+app.post("/api/save", upload.fields(uploadFields), async (req, res) => {
+    try {
+        const files = req.files || {};
+        const fileMap = {};
+        
+        // Flatten files object from multer
+        Object.entries(files).forEach(([fieldName, fileArray]) => {
+            if (Array.isArray(fileArray) && fileArray.length > 0) {
+                fileMap[fieldName] = fileArray[0];
+            }
+        });
+        
+        const error = validate(req.body, fileMap);
+        if (error) {
+            return res.status(400).json({ error });
+        }
+        
+        const query = buildInsertQuery(req.body, fileMap);
+        const result = await pool.query(query.text, query.values);
+        
+        res.json({ 
+            success: true, 
+            id: result.rows[0]?.id,
+            message: "Record saved successfully"
+        });
+    } catch (error) {
+        console.error("Save error:", error.message);
+        if (error.message.includes("is required")) {
+            return res.status(400).json({ error: error.message });
+        }
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+// Schema endpoint
+app.get("/schema", (_, res) => {
+    res.json({ 
+        table: TABLE_NAME,
+        schema: schema,
+        fields: Object.keys(schema).length,
+        autoCreated: AUTO_CREATED_AT
+    });
+});
+
+// Health endpoint
+app.get("/health", (_, res) => {
+    res.json({ 
+        status: "ok", 
+        timestamp: new Date().toISOString(),
+        service: "database-api"
+    });
+});
+
+(async () => {
+    try {
+        await pool.query(createTableSQL());
+        console.log(\`Table '\${TABLE_NAME}' created/verified successfully\`);
+    } catch (error) {
+        console.error("Table creation error:", error);
+    }
+})();
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(\`Server running on port \${PORT}\`);
+    console.log(\`Table '\${TABLE_NAME}' has \${Object.keys(schema).length} fields\`);
+    console.log("Endpoints available:");
+    console.log("  POST /api/save    - Save a record");
+    console.log("  GET  /schema      - Get schema info");
+    console.log("  GET  /health      - Health check");
+});`;
+            
+            document.getElementById('output').textContent = serverCode;
+            showToast("Production server code generated successfully!");
+        }
+
+        // Copy code
+        function copyCode() {
+            const code = document.getElementById('output').textContent;
+            if (code.includes("Click \"Generate Server Code\"")) {
+                showToast("Generate code first", "error");
+                return;
+            }
+            
+            navigator.clipboard.writeText(code)
+                .then(() => showToast("Code copied to clipboard!"))
+                .catch(() => showToast("Failed to copy code", "error"));
+        }
+
+        // Download code
+        function downloadCode() {
+            const code = document.getElementById('output').textContent;
+            if (code.includes("Click \"Generate Server Code\"")) {
+                showToast("Generate code first", "error");
+                return;
+            }
+            
+            const blob = new Blob([code], { type: 'text/javascript' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'server.js';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast("server.js downloaded successfully!");
+        }
+    </script>
+</body>
+</html>
