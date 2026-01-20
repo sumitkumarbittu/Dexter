@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Smart QR Generator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<style>
+:root {
+  --primary: #2563eb;
+  --bg: #f4f6fb;
+  --card: #ffffff;
+  --text: #111827;
+  --muted: #6b7280;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  font-family: system-ui, -apple-system, sans-serif;
+  color: var(--text);
+}
+
+.container {
+  max-width: 420px;
+  margin: auto;
+  padding: 16px;
+}
+
+.card {
+  background: var(--card);
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 12px 30px rgba(0,0,0,.08);
+  margin-bottom: 16px;
+}
+
+h1 {
+  text-align: center;
+  margin: 0 0 14px;
+}
+
+label {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 14px;
+  display: block;
+}
+
+input, textarea, select {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #d1d5db;
+  font-size: 15px;
+  margin-top: 6px;
+}
+
+textarea { resize: none; }
+
+button {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primary {
+  background: var(--primary);
+  color: white;
+}
+
+.secondary {
+  background: #e5e7eb;
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.hidden {
+  display: none;
+}
+
+#qrBox {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+canvas {
+  border-radius: 16px;
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+}
+
+.history-item {
+  padding: 10px;
+  border-radius: 10px;
+  background: #f9fafb;
+  margin-top: 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="card">
+<h1>QR Generator</h1>
+
+<label>QR Type</label>
+<select id="type" onchange="switchType()">
+  <option value="url">Website URL</option>
+  <option value="whatsapp">WhatsApp Message</option>
+</select>
+
+<div id="urlBox">
+  <label>Website URL</label>
+  <input id="url" placeholder="https://paydrive.in">
+</div>
+
+<div id="waBox" class="hidden">
+  <label>Phone Number</label>
+  <input id="phone" placeholder="91XXXXXXXXXX">
+
+  <label>Message</label>
+  <textarea id="message" rows="2">Hello</textarea>
+</div>
+
+<div class="toggle">
+  <span>Customize Colors</span>
+  <input type="checkbox" onchange="toggleColors(this)">
+</div>
+
+<div id="colorBox" class="hidden row">
+  <input type="color" id="fg" value="#000000">
+  <input type="color" id="bg" value="#ffffff">
+</div>
+
+<div class="toggle">
+  <span>Add Logo</span>
+  <input type="checkbox" onchange="toggleLogo(this)">
+</div>
+
+<input id="logos" type="file" accept="image/*" multiple class="hidden">
+
+<button class="primary" onclick="generate()">Generate QR</button>
+
+<div id="qrBox"></div>
+
+<div class="row">
+  <button class="secondary" onclick="download()">Download</button>
+  <button class="secondary" onclick="copy()">Copy URL</button>
+</div>
+</div>
+
+<div class="card">
+<h3>QR History</h3>
+<div id="history"></div>
+</div>
+
+</div>
+
+<script>
+let current = "";
+
+function switchType() {
+  urlBox.classList.toggle("hidden", type.value !== "url");
+  waBox.classList.toggle("hidden", type.value !== "whatsapp");
+}
+
+function toggleColors(el) {
+  colorBox.classList.toggle("hidden", !el.checked);
+}
+
+function toggleLogo(el) {
+  logos.classList.toggle("hidden", !el.checked);
+}
+
+function generate() {
+  qrBox.innerHTML = "";
+
+  current = type.value === "url"
+    ? url.value
+    : `https://wa.me/${phone.value}?text=${encodeURIComponent(message.value)}`;
+
+  new QRCode(qrBox, {
+    text: current,
+    width: 260,
+    height: 260,
+    colorDark: fg.value,
+    colorLight: bg.value,
+    correctLevel: QRCode.CorrectLevel.H
+  });
+
+  save(current);
+}
+
+function download() {
+  const c = document.querySelector("canvas");
+  if (!c) return;
+  const a = document.createElement("a");
+  a.href = c.toDataURL();
+  a.download = "qr.png";
+  a.click();
+}
+
+function copy() {
+  navigator.clipboard.writeText(current);
+  alert("Copied!");
+}
+
+function save(d) {
+  let h = JSON.parse(localStorage.getItem("qr") || "[]");
+  if (!h.includes(d)) h.unshift(d);
+  localStorage.setItem("qr", JSON.stringify(h.slice(0,8)));
+  load();
+}
+
+function load() {
+  history.innerHTML = "";
+  JSON.parse(localStorage.getItem("qr") || "[]").forEach(d => {
+    const div = document.createElement("div");
+    div.className = "history-item";
+    div.textContent = d;
+    div.onclick = () => { url.value = d; generate(); };
+    history.appendChild(div);
+  });
+}
+load();
+</script>
+
+</body>
+</html>

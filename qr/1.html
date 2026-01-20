@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>All-in-One QR Generator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<style>
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: #f2f4f8;
+}
+.container {
+  max-width: 420px;
+  margin: auto;
+  padding: 16px;
+}
+.card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.08);
+}
+h2 { text-align: center; margin-bottom: 10px; }
+
+input, textarea, select, button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+}
+button {
+  background: #2563eb;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+button.secondary {
+  background: #e5e7eb;
+  color: #000;
+}
+.row {
+  display: flex;
+  gap: 8px;
+}
+#qrWrap {
+  margin-top: 16px;
+  text-align: center;
+}
+canvas {
+  border-radius: 12px;
+}
+.history {
+  margin-top: 20px;
+}
+.history-item {
+  background: #f8fafc;
+  padding: 8px;
+  border-radius: 8px;
+  margin-top: 6px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.color-row {
+  display: flex;
+  gap: 10px;
+}
+label {
+  font-size: 13px;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<div class="card">
+<h2>QR Generator</h2>
+
+<select id="qrType">
+  <option value="url">URL QR</option>
+  <option value="whatsapp">WhatsApp QR</option>
+</select>
+
+<input id="url" placeholder="https://example.com">
+
+<input id="phone" placeholder="WhatsApp Number (91XXXXXXXXXX)">
+<textarea id="message" placeholder="WhatsApp Message"></textarea>
+
+<div class="color-row">
+  <div>
+    <label>QR Color</label>
+    <input type="color" id="fg" value="#000000">
+  </div>
+  <div>
+    <label>Background</label>
+    <input type="color" id="bg" value="#ffffff">
+  </div>
+</div>
+
+<label>Upload Logo (Max 3)</label>
+<input type="file" id="logos" accept="image/*" multiple>
+
+<select id="design">
+  <option value="square">Square</option>
+  <option value="rounded">Rounded</option>
+</select>
+
+<button onclick="generateQR()">Generate QR</button>
+
+<div id="qrWrap"></div>
+
+<div class="row">
+  <button class="secondary" onclick="downloadQR()">Download QR</button>
+  <button class="secondary" onclick="copyData()">Copy URL</button>
+</div>
+
+</div>
+
+<div class="card history">
+<h3>QR History</h3>
+<div id="history"></div>
+</div>
+
+</div>
+
+<script>
+let currentData = "";
+
+function generateQR() {
+  document.getElementById("qrWrap").innerHTML = "";
+
+  const type = qrType.value;
+  let data = "";
+
+  if (type === "url") {
+    data = url.value;
+  } else {
+    data = `https://wa.me/${phone.value}?text=${encodeURIComponent(message.value)}`;
+  }
+
+  currentData = data;
+  saveHistory(data);
+
+  new QRCode("qrWrap", {
+    text: data,
+    width: 260,
+    height: 260,
+    colorDark: fg.value,
+    colorLight: bg.value,
+    correctLevel: QRCode.CorrectLevel.H
+  });
+
+  setTimeout(addLogos, 300);
+}
+
+function addLogos() {
+  const files = logos.files;
+  if (!files.length) return;
+
+  const canvas = document.querySelector("#qrWrap canvas");
+  const ctx = canvas.getContext("2d");
+
+  [...files].slice(0,3).forEach((file, i) => {
+    const img = new Image();
+    img.onload = () => {
+      const size = canvas.width / 5;
+      const pos = [
+        [canvas.width/2-size/2, canvas.height/2-size/2],
+        [10,10],
+        [canvas.width-size-10,10]
+      ][i];
+      ctx.drawImage(img, pos[0], pos[1], size, size);
+    };
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+function downloadQR() {
+  const canvas = document.querySelector("#qrWrap canvas");
+  const link = document.createElement("a");
+  link.download = "qr.png";
+  link.href = canvas.toDataURL();
+  link.click();
+}
+
+function copyData() {
+  navigator.clipboard.writeText(currentData);
+  alert("Copied!");
+}
+
+function saveHistory(data) {
+  let h = JSON.parse(localStorage.getItem("qrHistory") || "[]");
+  if (!h.includes(data)) h.unshift(data);
+  localStorage.setItem("qrHistory", JSON.stringify(h.slice(0,10)));
+  loadHistory();
+}
+
+function loadHistory() {
+  const h = JSON.parse(localStorage.getItem("qrHistory") || "[]");
+  history.innerHTML = "";
+  h.forEach(d => {
+    const div = document.createElement("div");
+    div.className = "history-item";
+    div.textContent = d;
+    div.onclick = () => {
+      url.value = d;
+      generateQR();
+    };
+    history.appendChild(div);
+  });
+}
+loadHistory();
+</script>
+
+</body>
+</html>

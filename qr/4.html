@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Smart QR Generator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<style>
+:root {
+  --bg:#f5f7fb; --card:#fff; --text:#111; --muted:#6b7280; --primary:#2563eb;
+}
+[data-theme="dark"] {
+  --bg:#0f172a; --card:#020617; --text:#f8fafc; --muted:#94a3b8; --primary:#3b82f6;
+}
+
+*{box-sizing:border-box;font-family:system-ui}
+body{margin:0;background:var(--bg);color:var(--text);transition:.3s}
+.container{max-width:420px;margin:auto;padding:16px}
+.card{background:var(--card);border-radius:20px;padding:18px;box-shadow:0 15px 35px rgba(0,0,0,.12);margin-bottom:16px}
+h1{text-align:center;margin:4px 0 14px}
+
+.toggle-bar{display:flex;background:#e5e7eb;border-radius:14px;overflow:hidden}
+.toggle-bar button{flex:1;padding:12px;border:none;background:transparent;font-weight:600}
+.toggle-bar .active{background:var(--primary);color:#fff}
+
+label{font-size:13px;color:var(--muted);margin-top:14px;display:block}
+input,textarea{width:100%;padding:12px;border-radius:14px;border:1px solid #cbd5f5;margin-top:6px;background:transparent;color:inherit}
+textarea{resize:none}
+
+.row{display:flex;gap:10px;margin-top:12px}
+button.primary{background:var(--primary);color:#fff;border:none;padding:14px;border-radius:16px;font-size:16px;font-weight:600;width:100%}
+button.secondary{background:#e5e7eb;border:none;padding:12px;border-radius:14px;flex:1}
+
+.hidden{display:none}
+#qrWrap{display:flex;justify-content:center;margin-top:18px}
+canvas{border-radius:18px}
+
+.switch{display:flex;justify-content:space-between;align-items:center;margin-top:14px}
+.switch input{width:44px;height:24px}
+
+.preview{font-size:13px;padding:10px;background:#0206170f;border-radius:10px;margin-top:8px;word-break:break-all}
+.designs{display:flex;gap:10px;margin-top:10px}
+.design{flex:1;padding:10px;border-radius:12px;text-align:center;border:2px solid transparent;background:#e5e7eb;font-size:13px}
+.design.active{border-color:var(--primary)}
+
+.color-box{display:flex;gap:10px;margin-top:10px}
+
+button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+.toggle-bar button {
+  transition: .25s ease;
+}
+body, .card {
+  transition: background .3s, color .3s;
+}
+
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<div class="card">
+<h1>QR Generator</h1>
+
+<!-- MODE TOGGLER -->
+<div class="toggle-bar">
+  <button id="btnUrl" class="active" onclick="setMode('url')">URL</button>
+  <button id="btnWa" onclick="setMode('wa')">WhatsApp</button>
+</div>
+
+<div id="urlBox">
+  <label>Website URL</label>
+  <input id="url" placeholder="https://instagram.com/..." />
+</div>
+
+<div id="waBox" class="hidden">
+  <label>Phone</label>
+  <input id="phone" placeholder="91XXXXXXXXXX" />
+  <label>Message</label>
+  <textarea id="msg" rows="2">Hello</textarea>
+</div>
+
+<!-- DESIGN -->
+<label>QR Design</label>
+<div class="designs">
+  <div class="design active" onclick="setDesign(0)">Square</div>
+  <div class="design" onclick="setDesign(1)">Rounded</div>
+  <div class="design" onclick="setDesign(2)">Soft</div>
+</div>
+
+<!-- COLORS -->
+<div class="switch">
+  <span>Customize Colors</span>
+  <input type="checkbox" onchange="toggleColors(this)">
+</div>
+<div id="colors" class="hidden color-box">
+  <input type="color" id="fg" value="#000000">
+  <input type="color" id="bg" value="#ffffff">
+</div>
+
+<!-- LOGO -->
+<div class="switch">
+  <span>Custom Logo</span>
+  <input type="checkbox" onchange="toggleLogo(this)">
+</div>
+<input id="logo" type="file" accept="image/*" class="hidden">
+
+<button class="primary" onclick="generate()">Generate QR</button>
+
+<div id="qrWrap"></div>
+
+<label>Preview URL</label>
+<div class="preview" id="preview">—</div>
+
+<div class="row">
+  <button class="secondary" onclick="download()">Download</button>
+  <button class="secondary" onclick="copy()">Copy</button>
+</div>
+</div>
+
+<div class="card">
+<div class="switch">
+  <span>Dark Mode</span>
+  <input type="checkbox" onchange="toggleTheme(this)">
+</div>
+</div>
+
+</div>
+
+<script>
+/* ========= DOM ========= */
+const btnUrl = document.getElementById("btnUrl");
+const btnWa = document.getElementById("btnWa");
+const urlBox = document.getElementById("urlBox");
+const waBox = document.getElementById("waBox");
+const url = document.getElementById("url");
+const phone = document.getElementById("phone");
+const msg = document.getElementById("msg");
+const qrWrap = document.getElementById("qrWrap");
+const preview = document.getElementById("preview");
+const fg = document.getElementById("fg");
+const bg = document.getElementById("bg");
+const logoInput = document.getElementById("logo");
+const downloadBtn = document.querySelector(".row button:nth-child(1)");
+const copyBtn = document.querySelector(".row button:nth-child(2)");
+const themeToggle = document.querySelector('[onchange^="toggleTheme"]');
+
+/* ========= STATE ========= */
+let mode = "url";
+let currentQR = "";
+let hasQR = false;
+let liveTimer = null;
+
+/* ========= AUTO LOGOS ========= */
+const AUTO_LOGOS = {
+  whatsapp: "https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg",
+  instagram: "https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png",
+  facebook: "https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png",
+  twitter: "https://upload.wikimedia.org/wikipedia/commons/6/6f/Logo_of_Twitter.svg"
+};
+
+/* ========= MODE ========= */
+function setMode(m) {
+  mode = m;
+  btnUrl.classList.toggle("active", m === "url");
+  btnWa.classList.toggle("active", m === "wa");
+  urlBox.classList.toggle("hidden", m !== "url");
+  waBox.classList.toggle("hidden", m !== "wa");
+  triggerLive();
+}
+
+/* ========= THEME ========= */
+function toggleTheme(el) {
+  const theme = el.checked ? "dark" : "light";
+  document.documentElement.setAttribute("data-theme", theme);
+  localStorage.setItem("theme", theme);
+}
+const savedTheme = localStorage.getItem("theme") || "light";
+document.documentElement.setAttribute("data-theme", savedTheme);
+themeToggle.checked = savedTheme === "dark";
+
+/* ========= VALIDATION ========= */
+function isValid() {
+  return mode === "url"
+    ? url.value.trim().length > 5
+    : phone.value.trim().length >= 10;
+}
+
+/* ========= LOGO DETECTION ========= */
+function autoLogo(data) {
+  if (mode === "wa") return AUTO_LOGOS.whatsapp;
+  if (data.includes("instagram")) return AUTO_LOGOS.instagram;
+  if (data.includes("facebook")) return AUTO_LOGOS.facebook;
+  if (data.includes("twitter") || data.includes("x.com")) return AUTO_LOGOS.twitter;
+  return null;
+}
+
+/* ========= LIVE GENERATE ========= */
+function triggerLive() {
+  clearTimeout(liveTimer);
+  liveTimer = setTimeout(generate, 350);
+}
+
+/* ========= GENERATE QR ========= */
+function generate() {
+  if (!isValid()) {
+    qrWrap.innerHTML = "";
+    preview.textContent = "—";
+    hasQR = false;
+    updateButtons();
+    return;
+  }
+
+  qrWrap.innerHTML = "";
+  currentQR =
+    mode === "url"
+      ? url.value.trim()
+      : `https://wa.me/${phone.value}?text=${encodeURIComponent(msg.value)}`;
+
+  preview.textContent = currentQR;
+
+  new QRCode(qrWrap, {
+    text: currentQR,
+    width: 260,
+    height: 260,
+    colorDark: fg.value,
+    colorLight: bg.value,
+    correctLevel: QRCode.CorrectLevel.H
+  });
+
+  setTimeout(forceCanvasAndLogo, 300);
+}
+
+/* ========= FORCE CANVAS ========= */
+function forceCanvasAndLogo() {
+  let canvas = qrWrap.querySelector("canvas");
+  const img = qrWrap.querySelector("img");
+
+  if (!canvas && img) {
+    canvas = document.createElement("canvas");
+    canvas.width = img.width;
+    canvas.height = img.height;
+    canvas.getContext("2d").drawImage(img, 0, 0);
+    img.remove();
+    qrWrap.appendChild(canvas);
+  }
+
+  if (!canvas) return;
+
+  drawLogo(canvas);
+  hasQR = true;
+  updateButtons();
+}
+
+/* ========= DRAW LOGO ========= */
+function drawLogo(canvas) {
+  let src = logoInput.files[0]
+    ? URL.createObjectURL(logoInput.files[0])
+    : autoLogo(currentQR);
+
+  if (!src) return;
+
+  const ctx = canvas.getContext("2d");
+  const img = new Image();
+  img.crossOrigin = "anonymous";
+  img.onload = () => {
+    const size = canvas.width * 0.22;
+    ctx.drawImage(
+      img,
+      (canvas.width - size) / 2,
+      (canvas.height - size) / 2,
+      size,
+      size
+    );
+  };
+  img.src = src;
+}
+
+/* ========= BUTTONS ========= */
+function updateButtons() {
+  downloadBtn.disabled = !hasQR;
+  copyBtn.disabled = !hasQR;
+}
+function download() {
+  if (!hasQR) return;
+  const c = qrWrap.querySelector("canvas");
+  const a = document.createElement("a");
+  a.href = c.toDataURL("image/png");
+  a.download = "qr.png";
+  a.click();
+}
+function copy() {
+  if (hasQR) navigator.clipboard.writeText(currentQR);
+}
+
+/* ========= LIVE LISTENERS ========= */
+[url, phone, msg, fg, bg].forEach(el =>
+  el?.addEventListener("input", triggerLive)
+);
+logoInput.addEventListener("change", generate);
+
+/* ========= INIT ========= */
+updateButtons();
+</script>
+
+
+</body>
+</html>

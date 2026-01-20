@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Smart QR Generator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<style>
+:root{
+  --bg:#f5f7fb;--card:#fff;--text:#111;--muted:#6b7280;--primary:#2563eb;
+}
+[data-theme="dark"]{
+  --bg:#0f172a;--card:#020617;--text:#f8fafc;--muted:#94a3b8;--primary:#3b82f6;
+}
+*{box-sizing:border-box;font-family:system-ui}
+body{margin:0;background:var(--bg);color:var(--text);transition:.3s}
+.container{max-width:420px;margin:auto;padding:16px}
+.card{background:var(--card);border-radius:20px;padding:18px;box-shadow:0 20px 50px rgba(0,0,0,.15);margin-bottom:16px}
+h1{text-align:center;margin:0 0 14px}
+
+.toggle-bar{display:flex;background:#e5e7eb;border-radius:14px;overflow:hidden}
+.toggle-bar button{flex:1;padding:12px;border:none;background:none;font-weight:600}
+.toggle-bar .active{background:var(--primary);color:#fff}
+
+label{font-size:13px;color:var(--muted);margin-top:14px;display:block}
+input,textarea{width:100%;padding:12px;border-radius:14px;border:1px solid #cbd5f5;margin-top:6px;background:transparent;color:inherit}
+[data-theme="dark"] input,[data-theme="dark"] textarea{border:1px solid rgba(255,255,255,.18)}
+
+textarea{resize:none}
+.hidden{display:none}
+
+button.primary{width:100%;padding:14px;border:none;border-radius:16px;background:var(--primary);color:#fff;font-size:16px;font-weight:600}
+button.secondary{flex:1;padding:12px;border-radius:14px;border:none;background:rgba(0,0,0,.08)}
+[data-theme="dark"] button.secondary{background:rgba(255,255,255,.12);color:#fff}
+button:disabled{opacity:.5}
+
+.row{display:flex;gap:10px;margin-top:12px}
+
+.switch{display:flex;justify-content:space-between;align-items:center;margin-top:14px}
+.switch input{width:44px;height:24px}
+
+#qrWrap{display:flex;justify-content:center;margin-top:16px}
+canvas{border-radius:16px}
+
+.preview{font-size:13px;padding:10px;border-radius:10px;margin-top:8px;word-break:break-all;background:rgba(0,0,0,.06)}
+[data-theme="dark"] .preview{background:rgba(255,255,255,.08)}
+
+.history-item{
+  padding:10px;
+  border-radius:10px;
+  background:rgba(0,0,0,.05);
+  margin-top:8px;
+  font-size:13px;
+  cursor:pointer;
+}
+[data-theme="dark"] .history-item{background:rgba(255,255,255,.08)}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<div class="card">
+<h1>QR Generator</h1>
+
+<div class="toggle-bar">
+  <button id="btnUrl" class="active">URL</button>
+  <button id="btnWa">WhatsApp</button>
+</div>
+
+<div id="urlBox">
+  <label>Website URL</label>
+  <input id="url" placeholder="https://instagram.com/..." />
+</div>
+
+<div id="waBox" class="hidden">
+  <label>Phone</label>
+  <input id="phone" placeholder="91XXXXXXXXXX">
+  <label>Message</label>
+  <textarea id="msg" rows="2">Hello</textarea>
+</div>
+
+<div class="switch">
+  <span>Custom Logo</span>
+  <input type="checkbox" id="logoToggle">
+</div>
+<input type="file" id="logo" accept="image/*" class="hidden">
+
+<button class="primary" id="genBtn">Generate QR</button>
+
+<div id="qrWrap"></div>
+
+<label>Preview URL</label>
+<div class="preview" id="preview">—</div>
+
+<div class="row">
+  <button class="secondary" id="downloadBtn" disabled>Download</button>
+  <button class="secondary" id="copyBtn" disabled>Copy</button>
+</div>
+</div>
+
+<div class="card">
+<div class="switch">
+  <span>Dark Mode</span>
+  <input type="checkbox" id="themeToggle">
+</div>
+</div>
+
+<div class="card">
+<h3>QR History</h3>
+<div id="history"></div>
+</div>
+
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const AUTO_LOGOS={
+  wa:"https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg",
+  ig:"https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png",
+  fb:"https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png",
+  tw:"https://upload.wikimedia.org/wikipedia/commons/6/6f/Logo_of_Twitter.svg"
+};
+
+let mode="url",current="",hasQR=false,delay;
+
+/* ---------- MODE ---------- */
+btnUrl.onclick=()=>setMode("url");
+btnWa.onclick=()=>setMode("wa");
+function setMode(m){
+  mode=m;
+  btnUrl.classList.toggle("active",m==="url");
+  btnWa.classList.toggle("active",m==="wa");
+  urlBox.classList.toggle("hidden",m!=="url");
+  waBox.classList.toggle("hidden",m!=="wa");
+  live();
+}
+
+/* ---------- THEME ---------- */
+themeToggle.onchange=e=>{
+  document.documentElement.dataset.theme=e.target.checked?"dark":"light";
+  localStorage.theme=document.documentElement.dataset.theme;
+};
+if(localStorage.theme==="dark"){themeToggle.checked=true;document.documentElement.dataset.theme="dark";}
+
+/* ---------- LOGO ---------- */
+logoToggle.onchange=e=>{
+  logo.classList.toggle("hidden",!e.target.checked);
+  if(!e.target.checked) logo.value="";
+  live();
+};
+
+/* ---------- LIVE ---------- */
+[url,phone,msg].forEach(i=>i.oninput=live);
+logo.onchange=live;
+
+function live(){
+  clearTimeout(delay);
+  delay=setTimeout(generate,350);
+}
+
+/* ---------- QR ---------- */
+function autoLogo(u){
+  if(mode==="wa") return AUTO_LOGOS.wa;
+  if(u.includes("instagram")) return AUTO_LOGOS.ig;
+  if(u.includes("facebook")) return AUTO_LOGOS.fb;
+  if(u.includes("twitter")||u.includes("x.com")) return AUTO_LOGOS.tw;
+  return null;
+}
+
+function generate(){
+  qrWrap.innerHTML="";
+  hasQR=false;
+  if(mode==="url" && url.value.length<5) return reset();
+  if(mode==="wa" && phone.value.length<10) return reset();
+
+  current=mode==="url"
+    ?url.value.trim()
+    :`https://wa.me/${phone.value}?text=${encodeURIComponent(msg.value)}`;
+
+  preview.textContent=current;
+
+  new QRCode(qrWrap,{text:current,width:260,height:260,correctLevel:QRCode.CorrectLevel.H});
+  setTimeout(embedLogo,300);
+}
+
+function embedLogo(){
+  let c=qrWrap.querySelector("canvas");
+  if(!c){
+    const img=qrWrap.querySelector("img");
+    if(!img) return;
+    c=document.createElement("canvas");
+    c.width=img.width;c.height=img.height;
+    c.getContext("2d").drawImage(img,0,0);
+    img.remove();qrWrap.appendChild(c);
+  }
+
+  let src=logo.files[0]?URL.createObjectURL(logo.files[0]):autoLogo(current);
+  if(src){
+    const ctx=c.getContext("2d"),i=new Image();
+    i.crossOrigin="anonymous";
+    i.onload=()=>{
+      const s=c.width*.2,x=(c.width-s)/2,y=(c.height-s)/2;
+      ctx.fillStyle="#fff";ctx.fillRect(x-6,y-6,s+12,s+12);
+      ctx.drawImage(i,x,y,s,s);
+    };
+    i.src=src;
+  }
+
+  hasQR=true;
+  downloadBtn.disabled=false;
+  copyBtn.disabled=false;
+  saveHistory(current);
+}
+
+function reset(){
+  preview.textContent="—";
+  downloadBtn.disabled=true;
+  copyBtn.disabled=true;
+}
+
+/* ---------- HISTORY ---------- */
+function saveHistory(v){
+  let h=JSON.parse(localStorage.qrHistory||"[]");
+  if(!h.includes(v)) h.unshift(v);
+  localStorage.qrHistory=JSON.stringify(h.slice(0,8));
+  loadHistory();
+}
+function loadHistory(){
+  history.innerHTML="";
+  (JSON.parse(localStorage.qrHistory||"[]")).forEach(v=>{
+    const d=document.createElement("div");
+    d.className="history-item";
+    d.textContent=v;
+    d.onclick=()=>{url.value=v;setMode("url");generate();}
+    history.appendChild(d);
+  });
+}
+loadHistory();
+
+/* ---------- ACTIONS ---------- */
+downloadBtn.onclick=()=>{
+  const c=qrWrap.querySelector("canvas");
+  if(c){const a=document.createElement("a");a.href=c.toDataURL();a.download="qr.png";a.click();}
+};
+copyBtn.onclick=()=>navigator.clipboard.writeText(current);
+</script>
+</body>
+</html>

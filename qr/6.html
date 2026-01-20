@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Smart QR Generator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+  --bg: #f5f7fb;
+  --card: #ffffff;
+  --text: #111827;
+  --muted: #6b7280;
+  --primary: #3b82f6;
+  --primary-dark: #2563eb;
+  --secondary: #8b5cf6;
+  --success: #10b981;
+  --border: #e5e7eb;
+  --shadow: rgba(0, 0, 0, 0.08);
+  --radius: 16px;
+  --transition: all 0.3s ease;
+}
+
+[data-theme="dark"] {
+  --bg: #0f172a;
+  --card: #1e293b;
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --primary: #60a5fa;
+  --primary-dark: #3b82f6;
+  --secondary: #a78bfa;
+  --border: #334155;
+  --shadow: rgba(0, 0, 0, 0.25);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  transition: var(--transition);
+  min-height: 100vh;
+  padding: 20px;
+  line-height: 1.5;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+
+@media (max-width: 900px) {
+  .container {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+/* Header */
+.header {
+  text-align: center;
+  margin-bottom: 10px;
+  grid-column: 1 / -1;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin-bottom: 8px;
+  font-weight: 800;
+}
+
+.header p {
+  color: var(--muted);
+  font-size: 1.1rem;
+}
+
+/* Cards */
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 28px;
+  box-shadow: 0 10px 25px var(--shadow);
+  border: 1px solid var(--border);
+  transition: var(--transition);
+  backdrop-filter: blur(10px);
+}
+
+.card:hover {
+  box-shadow: 0 15px 35px var(--shadow);
+}
+
+/* Toggle Bar */
+.toggle-bar {
+  display: flex;
+  background: var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 24px;
+  border: 1px solid var(--border);
+}
+
+.toggle-bar button {
+  flex: 1;
+  padding: 14px;
+  border: none;
+  background: transparent;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  color: var(--muted);
+}
+
+.toggle-bar button.active {
+  background: var(--primary);
+  color: white;
+}
+
+.toggle-bar button:hover:not(.active) {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--primary);
+}
+
+/* Form Elements */
+.form-group {
+  margin-bottom: 22px;
+}
+
+label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+input, textarea, select {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: 2px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 1rem;
+  transition: var(--transition);
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* Design Options */
+.designs {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.design {
+  flex: 1;
+  padding: 14px;
+  border-radius: 12px;
+  text-align: center;
+  border: 2px solid var(--border);
+  background: var(--bg);
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.design:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+}
+
+.design.active {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: white;
+}
+
+.design i {
+  display: block;
+  font-size: 1.5rem;
+  margin-bottom: 6px;
+}
+
+/* Switches */
+.switch {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 20px 0;
+  padding: 14px;
+  background: var(--bg);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.switch-label {
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.switch-label i {
+  color: var(--primary);
+}
+
+.switch input[type="checkbox"] {
+  width: 52px;
+  height: 28px;
+  appearance: none;
+  background: var(--border);
+  border-radius: 14px;
+  position: relative;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.switch input[type="checkbox"]:checked {
+  background: var(--primary);
+}
+
+.switch input[type="checkbox"]::before {
+  content: '';
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  background: white;
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  transition: var(--transition);
+}
+
+.switch input[type="checkbox"]:checked::before {
+  left: 26px;
+}
+
+/* Colors */
+.color-box {
+  display: flex;
+  gap: 15px;
+  margin-top: 15px;
+  align-items: center;
+}
+
+.color-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.color-input input {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  cursor: pointer;
+  padding: 0;
+  border: 3px solid var(--border);
+}
+
+.color-input span {
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+/* Logo Options */
+.logo-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.logo-option {
+  padding: 14px;
+  border-radius: 12px;
+  border: 2px solid var(--border);
+  text-align: center;
+  cursor: pointer;
+  transition: var(--transition);
+  background: var(--bg);
+}
+
+.logo-option:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+}
+
+.logo-option.active {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: white;
+}
+
+.logo-option i {
+  font-size: 1.8rem;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.logo-preview {
+  width: 100%;
+  height: 120px;
+  border-radius: 12px;
+  background: var(--bg);
+  border: 2px dashed var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 15px;
+  overflow: hidden;
+}
+
+.logo-preview img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* Buttons */
+.primary-btn {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: white;
+  border: none;
+  padding: 18px;
+  border-radius: 14px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  width: 100%;
+  cursor: pointer;
+  transition: var(--transition);
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.primary-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+}
+
+.primary-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.secondary-btn {
+  background: var(--bg);
+  color: var(--text);
+  border: 2px solid var(--border);
+  padding: 14px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.secondary-btn:hover:not(:disabled) {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.secondary-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+/* QR Preview */
+.qr-preview-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+#qrWrap {
+  width: 280px;
+  height: 280px;
+  border-radius: 20px;
+  background: white;
+  padding: 20px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  margin: 20px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+}
+
+#qrWrap canvas {
+  border-radius: 12px;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Preview URL */
+.preview-container {
+  width: 100%;
+  margin-top: 20px;
+}
+
+.preview-label {
+  font-weight: 600;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#preview {
+  padding: 16px;
+  background: var(--bg);
+  border-radius: 12px;
+  word-break: break-all;
+  font-family: monospace;
+  font-size: 0.9rem;
+  border: 1px solid var(--border);
+  max-height: 100px;
+  overflow-y: auto;
+}
+
+/* Dark Mode Toggle */
+.theme-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 100;
+}
+
+.theme-toggle button {
+  background: var(--card);
+  border: 2px solid var(--border);
+  color: var(--text);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: 0 5px 15px var(--shadow);
+}
+
+.theme-toggle button:hover {
+  transform: rotate(30deg);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  body {
+    padding: 15px;
+  }
+  
+  .header h1 {
+    font-size: 2rem;
+  }
+  
+  .card {
+    padding: 20px;
+  }
+  
+  .container {
+    gap: 15px;
+  }
+  
+  .designs, .logo-options {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+  }
+  
+  #qrWrap {
+    width: 250px;
+    height: 250px;
+  }
+  
+  .theme-toggle {
+    top: 10px;
+    right: 10px;
+  }
+  
+  .theme-toggle button {
+    width: 45px;
+    height: 45px;
+  }
+}
+
+/* Loading Animation */
+.loading {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255,255,255,.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Hidden Class */
+.hidden {
+  display: none !important;
+}
+
+/* Status Messages */
+.status {
+  padding: 12px;
+  border-radius: 10px;
+  margin: 10px 0;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status.success {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.status.error {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+</style>
+</head>
+
+<body>
+<div class="theme-toggle">
+  <button id="themeToggle">
+    <i class="fas fa-moon"></i>
+  </button>
+</div>
+
+<div class="container">
+  <div class="header">
+    <h1><i class="fas fa-qrcode"></i> Smart QR Generator</h1>
+    <p>Create beautiful, customizable QR codes in seconds</p>
+  </div>
+  
+  <!-- Left Column - Controls -->
+  <div class="card">
+    <!-- Mode Selection -->
+    <div class="toggle-bar">
+      <button id="btnUrl" class="active">
+        <i class="fas fa-link"></i> URL
+      </button>
+      <button id="btnWa">
+        <i class="fab fa-whatsapp"></i> WhatsApp
+      </button>
+      <button id="btnText">
+        <i class="fas fa-text-height"></i> Text
+      </button>
+    </div>
+    
+    <!-- URL Mode -->
+    <div id="urlBox" class="form-group">
+      <label><i class="fas fa-globe"></i> Website URL</label>
+      <input id="url" type="url" placeholder="https://example.com" />
+    </div>
+    
+    <!-- WhatsApp Mode -->
+    <div id="waBox" class="hidden">
+      <div class="form-group">
+        <label><i class="fas fa-phone"></i> Phone Number</label>
+        <input id="phone" type="tel" placeholder="1234567890" />
+      </div>
+      <div class="form-group">
+        <label><i class="fas fa-comment"></i> Pre-filled Message</label>
+        <textarea id="msg" rows="3" placeholder="Hello! I'd like to get in touch...">Hello</textarea>
+      </div>
+    </div>
+    
+    <!-- Text Mode -->
+    <div id="textBox" class="hidden">
+      <div class="form-group">
+        <label><i class="fas fa-align-left"></i> Text Content</label>
+        <textarea id="textContent" rows="4" placeholder="Enter any text to encode in QR code..."></textarea>
+      </div>
+    </div>
+    
+    <!-- Design Selection -->
+    <div class="form-group">
+      <label><i class="fas fa-palette"></i> QR Design Style</label>
+      <div class="designs">
+        <div class="design active" onclick="setDesign(0)">
+          <i class="fas fa-square-full"></i>
+          Square
+        </div>
+        <div class="design" onclick="setDesign(1)">
+          <i class="fas fa-square"></i>
+          Rounded
+        </div>
+        <div class="design" onclick="setDesign(2)">
+          <i class="fas fa-soft"></i>
+          Dots
+        </div>
+      </div>
+    </div>
+    
+    <!-- Color Customization -->
+    <div class="switch">
+      <div class="switch-label">
+        <i class="fas fa-fill-drip"></i>
+        <span>Custom Colors</span>
+      </div>
+      <input type="checkbox" id="colorToggle" onchange="toggleColors(this)">
+    </div>
+    
+    <div id="colors" class="hidden">
+      <div class="color-box">
+        <div class="color-input">
+          <input type="color" id="fg" value="#000000">
+          <span>Foreground</span>
+        </div>
+        <div class="color-input">
+          <input type="color" id="bg" value="#ffffff">
+          <span>Background</span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Logo Selection -->
+    <div class="switch">
+      <div class="switch-label">
+        <i class="fas fa-image"></i>
+        <span>Add Logo</span>
+      </div>
+      <input type="checkbox" id="logoToggle" onchange="toggleLogoOptions(this)">
+    </div>
+    
+    <div id="logoOptions" class="hidden">
+      <div class="logo-options">
+        <div class="logo-option active" onclick="selectLogo('auto')">
+          <i class="fas fa-robot"></i>
+          Auto-Detect
+        </div>
+        <div class="logo-option" onclick="selectLogo('custom')">
+          <i class="fas fa-upload"></i>
+          Upload
+        </div>
+        <div class="logo-option" onclick="selectLogo('none')">
+          <i class="fas fa-times"></i>
+          None
+        </div>
+      </div>
+      
+      <div id="logoUploadContainer" class="hidden">
+        <label><i class="fas fa-file-upload"></i> Choose Logo Image</label>
+        <input type="file" id="logoUpload" accept="image/*" onchange="previewLogo(event)">
+        <div class="logo-preview" id="logoPreview">
+          <i class="fas fa-image"></i>
+          <span>No logo selected</span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Generate Button -->
+    <button class="primary-btn" onclick="generateQR()" id="generateBtn">
+      <i class="fas fa-bolt"></i>
+      Generate QR Code
+    </button>
+  </div>
+  
+  <!-- Right Column - Preview -->
+  <div class="card qr-preview-container">
+    <div id="qrWrap">
+      <div style="text-align: center; color: var(--muted);">
+        <i class="fas fa-qrcode" style="font-size: 4rem; margin-bottom: 15px;"></i>
+        <p>Your QR code will appear here</p>
+      </div>
+    </div>
+    
+    <div class="preview-container">
+      <div class="preview-label">
+        <i class="fas fa-eye"></i>
+        <span>Preview URL</span>
+      </div>
+      <div class="preview" id="preview">—</div>
+    </div>
+    
+    <div class="action-buttons">
+      <button class="secondary-btn" onclick="downloadQR()" id="downloadBtn" disabled>
+        <i class="fas fa-download"></i>
+        Download
+      </button>
+      <button class="secondary-btn" onclick="copyQR()" id="copyBtn" disabled>
+        <i class="fas fa-copy"></i>
+        Copy
+      </button>
+      <button class="secondary-btn" onclick="shareQR()" id="shareBtn" disabled>
+        <i class="fas fa-share-alt"></i>
+        Share
+      </button>
+    </div>
+    
+    <div id="statusMessage" class="hidden"></div>
+  </div>
+</div>
+
+<script>
+/* ========= DOM ELEMENTS ========= */
+const btnUrl = document.getElementById("btnUrl");
+const btnWa = document.getElementById("btnWa");
+const btnText = document.getElementById("btnText");
+const urlBox = document.getElementById("urlBox");
+const waBox = document.getElementById("waBox");
+const textBox = document.getElementById("textBox");
+const urlInput = document.getElementById("url");
+const phoneInput = document.getElementById("phone");
+const msgInput = document.getElementById("msg");
+const textInput = document.getElementById("textContent");
+const qrWrap = document.getElementById("qrWrap");
+const preview = document.getElementById("preview");
+const fgColor = document.getElementById("fg");
+const bgColor = document.getElementById("bg");
+const colorToggle = document.getElementById("colorToggle");
+const logoToggle = document.getElementById("logoToggle");
+const logoOptions = document.getElementById("logoOptions");
+const logoUploadContainer = document.getElementById("logoUploadContainer");
+const logoUpload = document.getElementById("logoUpload");
+const logoPreview = document.getElementById("logoPreview");
+const generateBtn = document.getElementById("generateBtn");
+const downloadBtn = document.getElementById("downloadBtn");
+const copyBtn = document.getElementById("copyBtn");
+const shareBtn = document.getElementById("shareBtn");
+const themeToggle = document.getElementById("themeToggle");
+const statusMessage = document.getElementById("statusMessage");
+
+/* ========= STATE ========= */
+let mode = "url";
+let currentQR = "";
+let hasQR = false;
+let liveTimer = null;
+let selectedLogo = "auto";
+let selectedDesign = 0;
+let customLogoFile = null;
+
+/* ========= AUTO LOGOS ========= */
+const AUTO_LOGOS = {
+  whatsapp: "https://cdn-icons-png.flaticon.com/512/733/733585.png",
+  instagram: "https://cdn-icons-png.flaticon.com/512/2111/2111463.png",
+  facebook: "https://cdn-icons-png.flaticon.com/512/733/733547.png",
+  twitter: "https://cdn-icons-png.flaticon.com/512/733/733579.png",
+  youtube: "https://cdn-icons-png.flaticon.com/512/733/733646.png",
+  linkedin: "https://cdn-icons-png.flaticon.com/512/733/733561.png",
+  tiktok: "https://cdn-icons-png.flaticon.com/512/3046/3046126.png",
+  spotify: "https://cdn-icons-png.flaticon.com/512/2111/2111624.png",
+  email: "https://cdn-icons-png.flaticon.com/512/732/732200.png",
+  default: "https://cdn-icons-png.flaticon.com/512/190/190768.png"
+};
+
+/* ========= THEME TOGGLE ========= */
+function toggleTheme() {
+  const html = document.documentElement;
+  const currentTheme = html.getAttribute("data-theme");
+  const newTheme = currentTheme === "dark" ? "light" : "dark";
+  
+  html.setAttribute("data-theme", newTheme);
+  localStorage.setItem("theme", newTheme);
+  
+  const icon = themeToggle.querySelector("i");
+  icon.className = newTheme === "dark" ? "fas fa-sun" : "fas fa-moon";
+  
+  showStatus(`Switched to ${newTheme} mode`, "success");
+}
+
+const savedTheme = localStorage.getItem("theme") || "light";
+document.documentElement.setAttribute("data-theme", savedTheme);
+themeToggle.querySelector("i").className = savedTheme === "dark" ? "fas fa-sun" : "fas fa-moon";
+
+themeToggle.addEventListener("click", toggleTheme);
+
+/* ========= MODE SELECTION ========= */
+function setMode(m) {
+  mode = m;
+  
+  // Update button states
+  btnUrl.classList.toggle("active", m === "url");
+  btnWa.classList.toggle("active", m === "wa");
+  btnText.classList.toggle("active", m === "text");
+  
+  // Show/hide forms
+  urlBox.classList.toggle("hidden", m !== "url");
+  waBox.classList.toggle("hidden", m !== "wa");
+  textBox.classList.toggle("hidden", m !== "text");
+  
+  // Update placeholder
+  if (m === "url") {
+    urlInput.placeholder = "https://example.com";
+  } else if (m === "wa") {
+    phoneInput.placeholder = "1234567890";
+  }
+  
+  // Trigger live generation
+  triggerLive();
+}
+
+// Add event listeners to mode buttons
+btnUrl.addEventListener("click", () => setMode("url"));
+btnWa.addEventListener("click", () => setMode("wa"));
+btnText.addEventListener("click", () => setMode("text"));
+
+/* ========= DESIGN SELECTION ========= */
+function setDesign(designIndex) {
+  selectedDesign = designIndex;
+  
+  // Update UI
+  document.querySelectorAll(".design").forEach((el, index) => {
+    el.classList.toggle("active", index === designIndex);
+  });
+  
+  // Regenerate QR if exists
+  if (hasQR) {
+    generateQR();
+  }
+}
+
+/* ========= LOGO SELECTION ========= */
+function toggleLogoOptions(checkbox) {
+  const isChecked = checkbox.checked;
+  logoOptions.classList.toggle("hidden", !isChecked);
+  
+  if (isChecked && selectedLogo === "custom") {
+    logoUploadContainer.classList.remove("hidden");
+  }
+  
+  if (hasQR) {
+    generateQR();
+  }
+}
+
+function selectLogo(logoType) {
+  selectedLogo = logoType;
+  
+  // Update UI
+  document.querySelectorAll(".logo-option").forEach(el => {
+    el.classList.toggle("active", el.getAttribute("onclick").includes(logoType));
+  });
+  
+  // Show/hide upload container
+  logoUploadContainer.classList.toggle("hidden", logoType !== "custom");
+  
+  // Clear custom logo if switching away
+  if (logoType !== "custom") {
+    customLogoFile = null;
+    logoPreview.innerHTML = '<i class="fas fa-image"></i><span>No logo selected</span>';
+  }
+  
+  if (hasQR) {
+    generateQR();
+  }
+}
+
+function previewLogo(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  if (!file.type.startsWith("image/")) {
+    showStatus("Please select an image file", "error");
+    return;
+  }
+  
+  if (file.size > 2 * 1024 * 1024) {
+    showStatus("Image size should be less than 2MB", "error");
+    return;
+  }
+  
+  customLogoFile = file;
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    logoPreview.innerHTML = `<img src="${e.target.result}" alt="Logo Preview">`;
+  };
+  reader.readAsDataURL(file);
+  
+  if (hasQR) {
+    generateQR();
+  }
+}
+
+/* ========= COLOR TOGGLE ========= */
+function toggleColors(checkbox) {
+  const colorsDiv = document.getElementById("colors");
+  colorsDiv.classList.toggle("hidden", !checkbox.checked);
+  
+  if (hasQR) {
+    generateQR();
+  }
+}
+
+/* ========= VALIDATION ========= */
+function isValid() {
+  switch(mode) {
+    case "url":
+      const urlVal = urlInput.value.trim();
+      return urlVal.length > 5 && (urlVal.startsWith("http://") || urlVal.startsWith("https://"));
+    case "wa":
+      const phoneVal = phoneInput.value.trim().replace(/\D/g, '');
+      return phoneVal.length >= 10;
+    case "text":
+      return textInput.value.trim().length > 0;
+    default:
+      return false;
+  }
+}
+
+/* ========= AUTO LOGO DETECTION ========= */
+function getAutoLogoUrl(data) {
+  if (!data) return AUTO_LOGOS.default;
+  
+  const lowerData = data.toLowerCase();
+  
+  if (mode === "wa") return AUTO_LOGOS.whatsapp;
+  if (lowerData.includes("instagram.com")) return AUTO_LOGOS.instagram;
+  if (lowerData.includes("facebook.com")) return AUTO_LOGOS.facebook;
+  if (lowerData.includes("twitter.com") || lowerData.includes("x.com")) return AUTO_LOGOS.twitter;
+  if (lowerData.includes("youtube.com") || lowerData.includes("youtu.be")) return AUTO_LOGOS.youtube;
+  if (lowerData.includes("linkedin.com")) return AUTO_LOGOS.linkedin;
+  if (lowerData.includes("tiktok.com")) return AUTO_LOGOS.tiktok;
+  if (lowerData.includes("spotify.com")) return AUTO_LOGOS.spotify;
+  if (lowerData.includes("mailto:")) return AUTO_LOGOS.email;
+  
+  return AUTO_LOGOS.default;
+}
+
+/* ========= LIVE GENERATION TRIGGER ========= */
+function triggerLive() {
+  clearTimeout(liveTimer);
+  liveTimer = setTimeout(generateQR, 500);
+}
+
+// Add event listeners for live updates
+[urlInput, phoneInput, msgInput, textInput, fgColor, bgColor].forEach(el => {
+  if (el) el.addEventListener("input", triggerLive);
+});
+
+/* ========= QR GENERATION ========= */
+function generateQR() {
+  // Clear previous
+  qrWrap.innerHTML = "";
+  hasQR = false;
+  updateButtons();
+  
+  // Validate
+  if (!isValid()) {
+    qrWrap.innerHTML = `
+      <div style="text-align: center; color: var(--muted); padding: 20px;">
+        <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 15px;"></i>
+        <p>Please enter valid ${mode === "url" ? "URL" : mode === "wa" ? "phone number" : "text"}</p>
+      </div>
+    `;
+    preview.textContent = "—";
+    return;
+  }
+  
+  // Generate QR content
+  switch(mode) {
+    case "url":
+      currentQR = urlInput.value.trim();
+      break;
+    case "wa":
+      const phoneNum = phoneInput.value.trim().replace(/\D/g, '');
+      const message = encodeURIComponent(msgInput.value.trim());
+      currentQR = `https://wa.me/${phoneNum}${message ? `?text=${message}` : ''}`;
+      break;
+    case "text":
+      currentQR = textInput.value.trim();
+      break;
+  }
+  
+  preview.textContent = currentQR;
+  
+  // Show generating indicator
+  generateBtn.innerHTML = '<span class="loading"></span> Generating...';
+  generateBtn.disabled = true;
+  
+  // Generate QR code
+  setTimeout(() => {
+    try {
+      const qrCode = new QRCode(qrWrap, {
+        text: currentQR,
+        width: 240,
+        height: 240,
+        colorDark: fgColor.value,
+        colorLight: bgColor.value,
+        correctLevel: QRCode.CorrectLevel.H
+      });
+      
+      // Apply design
+      setTimeout(() => applyDesignAndLogo(), 100);
+      
+    } catch (error) {
+      console.error("QR Generation Error:", error);
+      showStatus("Failed to generate QR code", "error");
+      generateBtn.innerHTML = '<i class="fas fa-bolt"></i> Generate QR Code';
+      generateBtn.disabled = false;
+    }
+  }, 50);
+}
+
+/* ========= APPLY DESIGN AND LOGO ========= */
+function applyDesignAndLogo() {
+  const canvas = qrWrap.querySelector("canvas");
+  const img = qrWrap.querySelector("img");
+  
+  if (!canvas && img) {
+    // Convert img to canvas
+    const newCanvas = document.createElement("canvas");
+    newCanvas.width = 240;
+    newCanvas.height = 240;
+    const ctx = newCanvas.getContext("2d");
+    
+    // Draw QR code
+    ctx.drawImage(img, 0, 0, 240, 240);
+    
+    // Remove img and add canvas
+    img.remove();
+    qrWrap.appendChild(newCanvas);
+    
+    // Apply design
+    applyDesign(newCanvas);
+    
+    // Apply logo if selected
+    if (logoToggle.checked && selectedLogo !== "none") {
+      applyLogo(newCanvas);
+    }
+  } else if (canvas) {
+    // Apply design
+    applyDesign(canvas);
+    
+    // Apply logo if selected
+    if (logoToggle.checked && selectedLogo !== "none") {
+      applyLogo(canvas);
+    }
+  }
+  
+  // Update state
+  hasQR = true;
+  updateButtons();
+  generateBtn.innerHTML = '<i class="fas fa-check"></i> Generated!';
+  
+  setTimeout(() => {
+    generateBtn.innerHTML = '<i class="fas fa-bolt"></i> Generate QR Code';
+    generateBtn.disabled = false;
+  }, 1000);
+  
+  showStatus("QR code generated successfully!", "success");
+}
+
+function applyDesign(canvas) {
+  const ctx = canvas.getContext("2d");
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imageData.data;
+  
+  // Square design (default) - no change
+  if (selectedDesign === 0) return;
+  
+  // Rounded design
+  if (selectedDesign === 1) {
+    const radius = 3;
+    const newCanvas = document.createElement("canvas");
+    newCanvas.width = canvas.width;
+    newCanvas.height = canvas.height;
+    const newCtx = newCanvas.getContext("2d");
+    
+    // Draw rounded squares
+    for (let y = 0; y < canvas.height; y += 10) {
+      for (let x = 0; x < canvas.width; x += 10) {
+        const pixelIndex = (y * canvas.width + x) * 4;
+        if (data[pixelIndex] < 128) { // Dark pixel
+          newCtx.fillStyle = fgColor.value;
+          roundRect(newCtx, x, y, 10, 10, radius);
+          newCtx.fill();
+        }
+      }
+    }
+    
+    // Copy back to original canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(newCanvas, 0, 0);
+  }
+  
+  // Dots design
+  if (selectedDesign === 2) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = bgColor.value;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = fgColor.value;
+    
+    for (let y = 5; y < canvas.height; y += 10) {
+      for (let x = 5; x < canvas.width; x += 10) {
+        const pixelIndex = (y * canvas.width + x) * 4;
+        if (data[pixelIndex] < 128) { // Dark pixel
+          ctx.beginPath();
+          ctx.arc(x, y, 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    }
+  }
+}
+
+function roundRect(ctx, x, y, width, height, radius) {
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+  ctx.lineTo(x + width, y + height - radius);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  ctx.lineTo(x + radius, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+}
+
+function applyLogo(canvas) {
+  const ctx = canvas.getContext("2d");
+  const img = new Image();
+  img.crossOrigin = "anonymous";
+  
+  img.onload = () => {
+    const size = canvas.width * 0.22;
+    const x = (canvas.width - size) / 2;
+    const y = (canvas.height - size) / 2;
+    
+    // Draw white background for logo
+    ctx.fillStyle = bgColor.value;
+    ctx.beginPath();
+    ctx.arc(x + size/2, y + size/2, size/2 + 2, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Draw logo
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(x + size/2, y + size/2, size/2, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.drawImage(img, x, y, size, size);
+    ctx.restore();
+  };
+  
+  img.onerror = () => {
+    console.log("Failed to load logo");
+  };
+  
+  // Set image source based on selection
+  if (selectedLogo === "auto") {
+    img.src = getAutoLogoUrl(currentQR);
+  } else if (selectedLogo === "custom" && customLogoFile) {
+    img.src = URL.createObjectURL(customLogoFile);
+  }
+}
+
+/* ========= BUTTON STATES ========= */
+function updateButtons() {
+  downloadBtn.disabled = !hasQR;
+  copyBtn.disabled = !hasQR;
+  shareBtn.disabled = !hasQR;
+}
+
+/* ========= DOWNLOAD QR ========= */
+function downloadQR() {
+  if (!hasQR) return;
+  
+  const canvas = qrWrap.querySelector("canvas");
+  if (!canvas) return;
+  
+  const link = document.createElement("a");
+  link.download = `qr-code-${Date.now()}.png`;
+  link.href = canvas.toDataURL("image/png");
+  link.click();
+  
+  showStatus("QR code downloaded!", "success");
+}
+
+/* ========= COPY QR ========= */
+function copyQR() {
+  if (!hasQR) return;
+  
+  const canvas = qrWrap.querySelector("canvas");
+  if (!canvas) return;
+  
+  canvas.toBlob(blob => {
+    const item = new ClipboardItem({ "image/png": blob });
+    navigator.clipboard.write([item]).then(() => {
+      showStatus("QR code copied to clipboard!", "success");
+    }).catch(err => {
+      showStatus("Failed to copy QR code", "error");
+    });
+  });
+}
+
+/* ========= SHARE QR ========= */
+function shareQR() {
+  if (!hasQR) return;
+  
+  const canvas = qrWrap.querySelector("canvas");
+  if (!canvas) return;
+  
+  canvas.toBlob(blob => {
+    const file = new File([blob], "qr-code.png", { type: "image/png" });
+    
+    if (navigator.share && navigator.canShare({ files: [file] })) {
+      navigator.share({
+        files: [file],
+        title: "My QR Code",
+        text: "Check out this QR code I created!"
+      }).then(() => {
+        showStatus("QR code shared successfully!", "success");
+      }).catch(err => {
+        console.log("Sharing cancelled or failed:", err);
+      });
+    } else {
+      // Fallback: download
+      downloadQR();
+    }
+  });
+}
+
+/* ========= STATUS MESSAGES ========= */
+function showStatus(message, type) {
+  statusMessage.textContent = message;
+  statusMessage.className = `status ${type}`;
+  statusMessage.classList.remove("hidden");
+  
+  setTimeout(() => {
+    statusMessage.classList.add("hidden");
+  }, 3000);
+}
+
+/* ========= INITIALIZE ========= */
+// Set initial mode
+setMode("url");
+
+// Add live listeners
+document.querySelectorAll('input[type="color"]').forEach(colorInput => {
+  colorInput.addEventListener("input", triggerLive);
+});
+
+// Initialize buttons
+updateButtons();
+
+// Auto-generate if there's valid input on load
+window.addEventListener("load", () => {
+  if (urlInput.value.trim().length > 5) {
+    setTimeout(generateQR, 500);
+  }
+});
+</script>
+</body>
+</html>
